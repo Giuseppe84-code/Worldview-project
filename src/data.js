@@ -1,7 +1,7 @@
 // ── Region definitions for OpenSky API ──
 export const REGIONS = {
   middleeast: { lamin: 12, lamax: 42, lomin: 24, lomax: 75, label: "M.EAST" },
-  midwest: { lamin: 10, lamax: 50, lomin: -120, lomax: -60, label: "M.OVEST" },
+  midwest: { lamin: 10, lamax: 50, lomin: -120, lomax: -60, label: "AMERICAS" },
   europe: { lamin: 35, lamax: 60, lomin: -10, lomax: 40, label: "EUROPE" },
   world: { lamin: -60, lamax: 60, lomin: -180, lomax: 180, label: "GLOBAL" },
 };
