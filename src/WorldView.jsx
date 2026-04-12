@@ -8,6 +8,7 @@ import { generateShipFleet, shipColor } from "./ships";
 import { computeTerminator } from "./terminator";
 import { GPS_JAM_ZONES, jamColor, jamOpacity } from "./gpsJamming";
 import { FILTERS, FILTER_KEYS } from "./visualFilters";
+import { connectAIS, getAISKey, setAISKey } from "./ais";
 
 export default function WorldView() {
   const canvasRef = useRef(null);
@@ -38,6 +39,10 @@ export default function WorldView() {
   const [searchOpen, setSearchOpen] = useState(false);
   const trailsRef = useRef({}); // { callsign: [{lat,lng,t}, ...] }
   const searchInputRef = useRef(null);
+  const [aisKey, setAisKeyState] = useState(getAISKey());
+  const [aisStatus, setAisStatus] = useState(getAISKey() ? "CONNECTING" : "SIMULATED");
+  const aisInputRef = useRef(null);
+  const [aisKeyInput, setAisKeyInput] = useState("");
 
   // UTC clock
   useEffect(() => {
@@ -85,7 +90,27 @@ export default function WorldView() {
 
   useEffect(() => { const load = async () => { setSatStatus("Loading..."); const sats = await fetchSatellites(); if (sats.length > 0) { satsRef.current = sats; setSatCount(sats.length); setSatStatus(`${sats.length} SATS`); } else setSatStatus("FAILED"); }; load(); const iv = setInterval(load, 300000); return () => clearInterval(iv); }, []);
   useEffect(() => { const load = async () => { const q = await fetchEarthquakes(); quakesRef.current = q; setQuakeCount(q.length); }; load(); const iv = setInterval(load, 120000); return () => clearInterval(iv); }, []);
-  useEffect(() => { const s = generateShipFleet(18); shipsRef.current = s; setShipCount(s.length); }, []);
+  // Ships: live AIS if key present, otherwise simulated fleet
+  useEffect(() => {
+    if (!aisKey) {
+      const s = generateShipFleet(18); shipsRef.current = s; setShipCount(s.length); setAisStatus("SIMULATED");
+      return;
+    }
+    // Global bounding boxes (whole world split to stay within aisstream free limits)
+    const bboxes = [[[-85, -180], [85, 180]]];
+    const close = connectAIS({
+      key: aisKey,
+      bboxes,
+      onUpdate: (ships) => { shipsRef.current = ships; setShipCount(ships.length); },
+      onStatus: ({ state, msg }) => {
+        setAisStatus(state === "connected" ? "LIVE AIS" : state === "connecting" ? "CONNECTING" : state === "error" ? `ERR${msg ? ": " + msg.slice(0, 15) : ""}` : state.toUpperCase());
+      },
+    });
+    return close;
+  }, [aisKey]);
+
+  const saveAisKey = () => { const k = aisKeyInput.trim(); setAISKey(k); setAisKeyState(k); setAisKeyInput(""); };
+  const clearAisKey = () => { setAISKey(""); setAisKeyState(""); shipsRef.current = []; setShipCount(0); setAisStatus("SIMULATED"); };
 
   // Fetch flights + record trails
   const fetchFlights = useCallback(async () => {
@@ -511,11 +536,32 @@ export default function WorldView() {
       {/* PANEL: SHIPS */}
       {panel === "ships" && (
         <div className="slide-up" style={{ position: "fixed", bottom: 82, left: 8, right: 8, zIndex: 9997, background: F.bg + "ee", border: "1px solid #44ddaa", borderRadius: 6, padding: "10px 12px", maxHeight: "45vh", overflowY: "auto", backdropFilter: "blur(8px)" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-            <span style={{ color: "#44ddaa", fontSize: 13, fontWeight: "bold", letterSpacing: 2 }}>VESSELS ({shipCount})</span>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+            <span style={{ color: "#44ddaa", fontSize: 13, fontWeight: "bold", letterSpacing: 2 }}>VESSELS ({shipCount}) <span style={{ color: aisStatus === "LIVE AIS" ? "#00ffaa" : "#ffaa00", fontSize: 10, marginLeft: 8 }}>[{aisStatus}]</span></span>
             <div onClick={() => setPanel(null)} style={{ color: "#556", fontSize: 16, cursor: "pointer" }}>x</div>
           </div>
-          {shipsRef.current.map((s, i) => (
+          <div style={{ background: "#44ddaa11", border: "1px solid #44ddaa33", borderRadius: 3, padding: "6px 8px", marginBottom: 8 }}>
+            {aisKey ? (
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                <div>
+                  <div style={{ color: "#00ffaa", fontSize: 11, fontWeight: "bold" }}>AIS key set &middot; {aisStatus}</div>
+                  <div style={{ color: "#1a3a5c", fontSize: 9 }}>Source: aisstream.io</div>
+                </div>
+                <div onClick={clearAisKey} style={{ color: "#ff6644", fontSize: 10, cursor: "pointer", border: "1px solid #ff664455", padding: "3px 8px", borderRadius: 3 }}>CLEAR</div>
+              </div>
+            ) : (
+              <div>
+                <div style={{ color: "#ffaa00", fontSize: 11, fontWeight: "bold", marginBottom: 4 }}>Showing simulated fleet</div>
+                <div style={{ color: "#778", fontSize: 9, marginBottom: 6 }}>Get free API key at aisstream.io, paste below for global live AIS</div>
+                <div style={{ display: "flex", gap: 4 }}>
+                  <input ref={aisInputRef} type="password" value={aisKeyInput} onChange={e => setAisKeyInput(e.target.value)} onKeyDown={e => e.key === "Enter" && saveAisKey()} placeholder="aisstream.io API key"
+                    style={{ flex: 1, padding: "5px 8px", background: "#04080f", border: "1px solid #44ddaa55", borderRadius: 3, color: "#fff", fontSize: 11, fontFamily: "inherit", outline: "none" }} />
+                  <div onClick={saveAisKey} style={{ color: "#00ffaa", fontSize: 10, fontWeight: "bold", cursor: "pointer", border: "1px solid #00ffaa", padding: "5px 10px", borderRadius: 3 }}>SAVE</div>
+                </div>
+              </div>
+            )}
+          </div>
+          {shipsRef.current.slice(0, 50).map((s, i) => (
             <div key={i} onClick={() => { rotRef.current = { lng: -s.lng, lat: s.lat }; setSelected({ type: "ship", data: s, x: window.innerWidth/2, y: 200 }); }}
               style={{ padding: "5px 8px", marginBottom: 3, background: shipColor(s.type) + "11", border: `1px solid ${shipColor(s.type)}44`, borderRadius: 3, cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>

@@ -79,4 +79,5 @@ export function generateShipFleet(count = 18) {
 export const shipColor = (type) =>
   type === "NAVAL" ? "#ff6644" :
   type === "TANKER" ? "#ffaa44" :
-  type === "CARGO" ? "#44ddaa" : "#888888";
+  type === "CARGO" ? "#44ddaa" :
+  type === "PASSENGER" ? "#aa88ff" : "#888888";
