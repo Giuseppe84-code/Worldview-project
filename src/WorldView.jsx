@@ -583,11 +583,18 @@ export default function WorldView() {
               <div style={{ color: "#00aaff", fontWeight: "bold", marginBottom: 4 }}>AIS DIAGNOSTIC</div>
               <div>msg total: {aisStats.msgCount} &middot; ships: {aisStats.ships} &middot; connected: {String(aisStats.connected)}</div>
               <div>pos updates: {aisStats.diag?.pos || 0} &middot; no-coord: {aisStats.diag?.noCoord || 0} &middot; no-mmsi: {aisStats.diag?.noMmsi || 0} &middot; static-only: {aisStats.diag?.staticOnly || 0}</div>
+              <div>parse-err: {aisStats.diag?.parseErr || 0} &middot; binary: {aisStats.diag?.binary || 0} &middot; payload: {aisStats.diag?.dataType || "?"}</div>
               <div style={{ marginTop: 4, color: "#778" }}>types: {Object.entries(aisStats.diag?.types || {}).map(([t, n]) => `${t}=${n}`).join(" ")}</div>
               {aisStats.firstSample && (
                 <details style={{ marginTop: 4 }}>
                   <summary style={{ color: "#00aaff", cursor: "pointer" }}>first sample</summary>
                   <pre style={{ margin: 4, fontSize: 9, whiteSpace: "pre-wrap", wordBreak: "break-all", color: "#88a", maxHeight: 150, overflow: "auto" }}>{JSON.stringify(aisStats.firstSample, null, 2)}</pre>
+                </details>
+              )}
+              {aisStats.firstRaw && (
+                <details style={{ marginTop: 4 }}>
+                  <summary style={{ color: "#00aaff", cursor: "pointer" }}>first raw</summary>
+                  <pre style={{ margin: 4, fontSize: 9, whiteSpace: "pre-wrap", wordBreak: "break-all", color: "#88a", maxHeight: 150, overflow: "auto" }}>{aisStats.firstRaw}</pre>
                 </details>
               )}
             </div>

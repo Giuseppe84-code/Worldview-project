@@ -42,8 +42,9 @@ export function connectAIS({ key, bboxes, onUpdate, onStatus }) {
   let currentBBoxes = bboxes;
   let msgCount = 0;
   let lastMsgAt = 0;
-  const diag = { noMmsi: 0, noCoord: 0, pos: 0, staticOnly: 0, unknown: 0, types: {} };
+  const diag = { noMmsi: 0, noCoord: 0, pos: 0, staticOnly: 0, unknown: 0, types: {}, parseErr: 0, binary: 0, dataType: "" };
   let firstSample = null;
+  let firstRaw = null;
 
   const flush = () => {
     const now = Date.now();
@@ -87,7 +88,18 @@ export function connectAIS({ key, bboxes, onUpdate, onStatus }) {
     ws.onmessage = (ev) => {
       msgCount++;
       lastMsgAt = Date.now();
-      let msg; try { msg = JSON.parse(ev.data); } catch { return; }
+      // Track raw payload type on the first message (debug aid)
+      if (!diag.dataType) {
+        diag.dataType = typeof ev.data === "string" ? "string"
+          : (ev.data instanceof ArrayBuffer) ? "arraybuffer"
+          : (typeof Blob !== "undefined" && ev.data instanceof Blob) ? "blob"
+          : typeof ev.data;
+      }
+      if (typeof ev.data !== "string") { diag.binary++; return; }
+      if (!firstRaw) firstRaw = ev.data.slice(0, 500);
+      let msg;
+      try { msg = JSON.parse(ev.data); }
+      catch { diag.parseErr++; return; }
       if (msg.error) { onStatus?.({ state: "error", msg: String(msg.error).slice(0, 30) }); return; }
       if (!firstSample) firstSample = msg;
       const t = msg.MessageType || "UNKNOWN";
@@ -177,7 +189,7 @@ export function connectAIS({ key, bboxes, onUpdate, onStatus }) {
       currentBBoxes = newBBoxes;
       sendSub();
     },
-    stats: () => ({ msgCount, ships: shipsByMmsi.size, connected: ws?.readyState === WebSocket.OPEN, diag, firstSample }),
+    stats: () => ({ msgCount, ships: shipsByMmsi.size, connected: ws?.readyState === WebSocket.OPEN, diag, firstSample, firstRaw }),
   };
 }
 
