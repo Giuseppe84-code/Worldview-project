@@ -105,15 +105,22 @@ export function connectAIS({ key, bboxes, onUpdate, onStatus }) {
       const t = msg.MessageType || "UNKNOWN";
       diag.types[t] = (diag.types[t] || 0) + 1;
       const meta = msg.MetaData || {};
-      const mmsi = meta.MMSI ?? meta.MMSI_String ?? meta.UserID;
-      if (!mmsi) { diag.noMmsi++; return; }
-      const prev = shipsByMmsi.get(mmsi) || { mmsi, type: "OTHER", flag: "??", length: 0, name: "", speed: 0, hdg: 0 };
       const m = msg.Message || {};
 
       // Position sources (in priority order): payload → MetaData
       const posPayload = m.PositionReport || m.StandardClassBPositionReport
         || m.ExtendedClassBPositionReport || m.StandardSearchAndRescueAircraftReport
         || m.LongRangeAisBroadcastMessage;
+
+      // MMSI extraction — fall back to the UserID inside any payload so we
+      // don't drop messages where aisstream only fills it in the inner record.
+      const innerUserId = posPayload?.UserID
+        ?? m.ShipStaticData?.UserID ?? m.StaticDataReport?.UserID
+        ?? m.StaticDataReport?.ReportA?.UserID ?? m.StaticDataReport?.ReportB?.UserID
+        ?? m.AidsToNavigationReport?.UserID ?? m.AidToNavigationReport?.UserID;
+      const mmsi = meta.MMSI ?? meta.MMSI_String ?? meta.UserID ?? innerUserId;
+      if (!mmsi) { diag.noMmsi++; return; }
+      const prev = shipsByMmsi.get(mmsi) || { mmsi, type: "OTHER", flag: "??", length: 0, name: "", speed: 0, hdg: 0 };
       const metaLat = meta.latitude ?? meta.Latitude;
       const metaLng = meta.longitude ?? meta.Longitude;
       const payloadLat = posPayload?.Latitude;
