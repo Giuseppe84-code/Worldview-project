@@ -103,7 +103,12 @@ export function connectAIS({ key, bboxes, onUpdate, onStatus }) {
         catch { diag.parseErr++; return; }
         // Guard: aisstream very occasionally emits "null" / primitives
         if (!msg || typeof msg !== "object") { diag.nonObject = (diag.nonObject || 0) + 1; return; }
-      if (msg.error) { onStatus?.({ state: "error", msg: String(msg.error).slice(0, 30) }); return; }
+      if (msg.error) {
+        diag.apiError = (diag.apiError || 0) + 1;
+        if (!diag.firstError) diag.firstError = String(msg.error).slice(0, 160);
+        onStatus?.({ state: "error", msg: String(msg.error).slice(0, 30) });
+        return;
+      }
       if (!firstSample) firstSample = msg;
       const t = msg.MessageType || "UNKNOWN";
       diag.types[t] = (diag.types[t] || 0) + 1;
