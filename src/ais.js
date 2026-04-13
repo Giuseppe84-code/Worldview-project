@@ -78,6 +78,8 @@ export function connectAIS({ key, bboxes, onUpdate, onStatus }) {
     onStatus?.({ state: "connecting" });
     try { ws = new WebSocket("wss://stream.aisstream.io/v0/stream"); }
     catch (e) { onStatus?.({ state: "error", msg: e.message }); scheduleReconnect(); return; }
+    // Receive binary frames as ArrayBuffer so we can decode synchronously
+    try { ws.binaryType = "arraybuffer"; } catch {}
 
     ws.onopen = () => {
       retries = 0; msgCount = 0; lastMsgAt = Date.now();
@@ -85,22 +87,54 @@ export function connectAIS({ key, bboxes, onUpdate, onStatus }) {
       sendSub();
     };
 
+    const handleText = (text) => {
+      try {
+        if (!firstRaw) firstRaw = text.slice(0, 500);
+        let msg;
+        try { msg = JSON.parse(text); }
+        catch { diag.parseErr++; return; }
+        processMsg(msg);
+      } catch (e) {
+        diag.handlerErr = (diag.handlerErr || 0) + 1;
+        diag.lastErr = String(e && e.message || e).slice(0, 120);
+      }
+    };
+
     ws.onmessage = (ev) => {
       msgCount++;
       lastMsgAt = Date.now();
+      // Track raw payload type on the first message (debug aid)
+      if (!diag.dataType) {
+        diag.dataType = typeof ev.data === "string" ? "string"
+          : (ev.data instanceof ArrayBuffer) ? "arraybuffer"
+          : (typeof Blob !== "undefined" && ev.data instanceof Blob) ? "blob"
+          : typeof ev.data;
+      }
+      // Normalize payload to text — aisstream may deliver binary frames
+      if (typeof ev.data === "string") {
+        handleText(ev.data);
+        return;
+      }
+      diag.binary = (diag.binary || 0) + 1;
+      if (ev.data instanceof ArrayBuffer) {
+        try { handleText(new TextDecoder("utf-8").decode(ev.data)); }
+        catch (e) { diag.handlerErr = (diag.handlerErr || 0) + 1; diag.lastErr = String(e.message || e).slice(0, 120); }
+        return;
+      }
+      if (typeof Blob !== "undefined" && ev.data instanceof Blob) {
+        ev.data.text().then(handleText).catch((e) => {
+          diag.handlerErr = (diag.handlerErr || 0) + 1;
+          diag.lastErr = String(e.message || e).slice(0, 120);
+        });
+        return;
+      }
+      diag.nonObject = (diag.nonObject || 0) + 1;
+    };
+
+    // Legacy inline body kept below as processMsg so the text and binary paths
+    // both feed into the same pipeline.
+    const processMsg = (msg) => {
       try {
-        // Track raw payload type on the first message (debug aid)
-        if (!diag.dataType) {
-          diag.dataType = typeof ev.data === "string" ? "string"
-            : (ev.data instanceof ArrayBuffer) ? "arraybuffer"
-            : (typeof Blob !== "undefined" && ev.data instanceof Blob) ? "blob"
-            : typeof ev.data;
-        }
-        if (typeof ev.data !== "string") { diag.binary++; return; }
-        if (!firstRaw) firstRaw = ev.data.slice(0, 500);
-        let msg;
-        try { msg = JSON.parse(ev.data); }
-        catch { diag.parseErr++; return; }
         // Guard: aisstream very occasionally emits "null" / primitives
         if (!msg || typeof msg !== "object") { diag.nonObject = (diag.nonObject || 0) + 1; return; }
       if (msg.error) {
