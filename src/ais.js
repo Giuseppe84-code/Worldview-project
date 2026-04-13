@@ -88,18 +88,21 @@ export function connectAIS({ key, bboxes, onUpdate, onStatus }) {
     ws.onmessage = (ev) => {
       msgCount++;
       lastMsgAt = Date.now();
-      // Track raw payload type on the first message (debug aid)
-      if (!diag.dataType) {
-        diag.dataType = typeof ev.data === "string" ? "string"
-          : (ev.data instanceof ArrayBuffer) ? "arraybuffer"
-          : (typeof Blob !== "undefined" && ev.data instanceof Blob) ? "blob"
-          : typeof ev.data;
-      }
-      if (typeof ev.data !== "string") { diag.binary++; return; }
-      if (!firstRaw) firstRaw = ev.data.slice(0, 500);
-      let msg;
-      try { msg = JSON.parse(ev.data); }
-      catch { diag.parseErr++; return; }
+      try {
+        // Track raw payload type on the first message (debug aid)
+        if (!diag.dataType) {
+          diag.dataType = typeof ev.data === "string" ? "string"
+            : (ev.data instanceof ArrayBuffer) ? "arraybuffer"
+            : (typeof Blob !== "undefined" && ev.data instanceof Blob) ? "blob"
+            : typeof ev.data;
+        }
+        if (typeof ev.data !== "string") { diag.binary++; return; }
+        if (!firstRaw) firstRaw = ev.data.slice(0, 500);
+        let msg;
+        try { msg = JSON.parse(ev.data); }
+        catch { diag.parseErr++; return; }
+        // Guard: aisstream very occasionally emits "null" / primitives
+        if (!msg || typeof msg !== "object") { diag.nonObject = (diag.nonObject || 0) + 1; return; }
       if (msg.error) { onStatus?.({ state: "error", msg: String(msg.error).slice(0, 30) }); return; }
       if (!firstSample) firstSample = msg;
       const t = msg.MessageType || "UNKNOWN";
@@ -162,6 +165,10 @@ export function connectAIS({ key, bboxes, onUpdate, onStatus }) {
           prev.lastSeen = Date.now();
           shipsByMmsi.set(mmsi, prev);
         }
+      }
+      } catch (e) {
+        diag.handlerErr = (diag.handlerErr || 0) + 1;
+        diag.lastErr = String(e && e.message || e).slice(0, 120);
       }
     };
 

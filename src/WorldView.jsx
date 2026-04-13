@@ -583,7 +583,8 @@ export default function WorldView() {
               <div style={{ color: "#00aaff", fontWeight: "bold", marginBottom: 4 }}>AIS DIAGNOSTIC</div>
               <div>msg total: {aisStats.msgCount} &middot; ships: {aisStats.ships} &middot; connected: {String(aisStats.connected)}</div>
               <div>pos updates: {aisStats.diag?.pos || 0} &middot; no-coord: {aisStats.diag?.noCoord || 0} &middot; no-mmsi: {aisStats.diag?.noMmsi || 0} &middot; static-only: {aisStats.diag?.staticOnly || 0}</div>
-              <div>parse-err: {aisStats.diag?.parseErr || 0} &middot; binary: {aisStats.diag?.binary || 0} &middot; payload: {aisStats.diag?.dataType || "?"}</div>
+              <div>parse-err: {aisStats.diag?.parseErr || 0} &middot; binary: {aisStats.diag?.binary || 0} &middot; non-obj: {aisStats.diag?.nonObject || 0} &middot; handler-err: {aisStats.diag?.handlerErr || 0} &middot; payload: {aisStats.diag?.dataType || "?"}</div>
+              {aisStats.diag?.lastErr && <div style={{ color: "#f66" }}>last-err: {aisStats.diag.lastErr}</div>}
               <div style={{ marginTop: 4, color: "#778" }}>types: {Object.entries(aisStats.diag?.types || {}).map(([t, n]) => `${t}=${n}`).join(" ")}</div>
               {aisStats.firstSample && (
                 <details style={{ marginTop: 4 }}>
