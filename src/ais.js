@@ -242,7 +242,7 @@ export function connectAIS({ key, bboxes, onUpdate, onStatus }) {
       currentBBoxes = newBBoxes;
       sendSub();
     },
-    stats: () => ({ msgCount, ships: shipsByMmsi.size, connected: ws?.readyState === WebSocket.OPEN, diag, firstSample, firstRaw }),
+    stats: () => ({ msgCount, ships: shipsByMmsi.size, connected: ws?.readyState === WebSocket.OPEN, readyState: ws?.readyState, diag, firstSample, firstRaw }),
   };
 }
 

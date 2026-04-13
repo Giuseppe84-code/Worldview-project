@@ -2,7 +2,7 @@
 // - HTML/navigation: network-first (so new deploys are picked up instantly)
 // - Hashed static assets (JS/CSS/images): cache-first
 // - Live data feeds: pass-through, never cached
-const CACHE = "worldview-v3";
+const CACHE = "worldview-v5";
 const SCOPE = "/Worldview-project/";
 
 self.addEventListener("install", (e) => {
