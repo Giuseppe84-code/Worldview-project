@@ -60,10 +60,10 @@ export function connectAIS({ key, bboxes, onUpdate, onStatus }) {
   const sendSub = () => {
     if (!ws || ws.readyState !== WebSocket.OPEN) return;
     try {
+      // No FilterMessageTypes → receive Class A + Class B + AtoN
       ws.send(JSON.stringify({
         APIKey: key,
         BoundingBoxes: currentBBoxes,
-        FilterMessageTypes: ["PositionReport", "ShipStaticData"],
       }));
     } catch {}
   };
@@ -92,9 +92,15 @@ export function connectAIS({ key, bboxes, onUpdate, onStatus }) {
 
       const metaLat = meta.latitude ?? meta.Latitude;
       const metaLng = meta.longitude ?? meta.Longitude;
+      const t = msg.MessageType;
+      const m = msg.Message || {};
 
-      if (msg.MessageType === "PositionReport" && msg.Message?.PositionReport) {
-        const p = msg.Message.PositionReport;
+      // Any kind of position report (Class A + Class B + extended)
+      const posPayload = m.PositionReport || m.StandardClassBPositionReport
+        || m.ExtendedClassBPositionReport || m.StandardSearchAndRescueAircraftReport;
+
+      if (posPayload) {
+        const p = posPayload;
         const lat = p.Latitude ?? metaLat;
         const lng = p.Longitude ?? metaLng;
         if (!validCoord(lat, lng)) return;
@@ -106,20 +112,34 @@ export function connectAIS({ key, bboxes, onUpdate, onStatus }) {
         prev.flag = prev.flag !== "??" ? prev.flag : mmsiToFlag(mmsi);
         prev.lastSeen = Date.now();
         shipsByMmsi.set(mmsi, prev);
-      } else if (msg.MessageType === "ShipStaticData" && msg.Message?.ShipStaticData) {
-        const s = msg.Message.ShipStaticData;
-        prev.name = (s.Name || prev.name || "").trim() || String(mmsi);
-        prev.type = mapType(s.Type);
-        prev.length = (s.Dimension?.A || 0) + (s.Dimension?.B || 0);
-        prev.callsign = (s.CallSign || "").trim();
+        return;
+      }
+
+      // Static data (Class A or Class B static)
+      const staticPayload = m.ShipStaticData || m.StaticDataReport?.ReportA || m.StaticDataReport;
+      if (staticPayload) {
+        const s = staticPayload;
+        prev.name = (s.Name || s.ShipName || prev.name || "").trim() || String(mmsi);
+        if (s.Type != null) prev.type = mapType(s.Type);
+        if (s.Dimension) prev.length = (s.Dimension.A || 0) + (s.Dimension.B || 0);
+        prev.callsign = (s.CallSign || prev.callsign || "").trim();
         prev.flag = mmsiToFlag(mmsi);
-        // Keep existing lat/lng from PositionReport if we have one
         if (validCoord(metaLat, metaLng) && !validCoord(prev.lat, prev.lng)) {
           prev.lat = metaLat; prev.lng = metaLng;
         }
         prev.lastSeen = Date.now();
-        // Only store if we have a valid position
         if (validCoord(prev.lat, prev.lng)) shipsByMmsi.set(mmsi, prev);
+        return;
+      }
+
+      // Fallback: use MetaData lat/lng if message carries a position there (some types do)
+      if (validCoord(metaLat, metaLng)) {
+        prev.lat = metaLat;
+        prev.lng = metaLng;
+        prev.name = prev.name || (meta.ShipName || "").trim() || String(mmsi);
+        prev.flag = prev.flag !== "??" ? prev.flag : mmsiToFlag(mmsi);
+        prev.lastSeen = Date.now();
+        shipsByMmsi.set(mmsi, prev);
       }
     };
 

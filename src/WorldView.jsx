@@ -92,9 +92,10 @@ export default function WorldView() {
   useEffect(() => { const load = async () => { const q = await fetchEarthquakes(); quakesRef.current = q; setQuakeCount(q.length); }; load(); const iv = setInterval(load, 120000); return () => clearInterval(iv); }, []);
   // Ships: live AIS if key present, otherwise simulated fleet
   const aisHandleRef = useRef(null);
+  const [aisMsgCount, setAisMsgCount] = useState(0);
   useEffect(() => {
     if (!aisKey) {
-      const s = generateShipFleet(18); shipsRef.current = s; setShipCount(s.length); setAisStatus("SIMULATED");
+      const s = generateShipFleet(18); shipsRef.current = s; setShipCount(s.length); setAisStatus("SIMULATED"); setAisMsgCount(0);
       return;
     }
     // Subscribe to current region bbox (free tier prefers bounded subs)
@@ -107,7 +108,9 @@ export default function WorldView() {
       },
     });
     aisHandleRef.current = handle;
-    return () => { handle.close(); aisHandleRef.current = null; };
+    // Poll stats for msg counter
+    const statIv = setInterval(() => { const s = handle.stats?.(); if (s) setAisMsgCount(s.msgCount); }, 1500);
+    return () => { clearInterval(statIv); handle.close(); aisHandleRef.current = null; };
   }, [aisKey]);
 
   // Update AIS subscription when region changes (no reconnect)
@@ -554,7 +557,7 @@ export default function WorldView() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
                 <div>
                   <div style={{ color: aisStatus === "LIVE AIS" ? "#00ffaa" : aisStatus.startsWith("ERR") || aisStatus.startsWith("DROP") ? "#ff6644" : "#ffaa00", fontSize: 11, fontWeight: "bold" }}>{aisStatus}</div>
-                  <div style={{ color: "#1a3a5c", fontSize: 9 }}>aisstream.io &middot; bbox: {REGIONS[region].label}</div>
+                  <div style={{ color: "#1a3a5c", fontSize: 9 }}>aisstream.io &middot; bbox: {REGIONS[region].label} &middot; {aisMsgCount} msg</div>
                 </div>
                 <div onClick={clearAisKey} style={{ color: "#ff6644", fontSize: 10, cursor: "pointer", border: "1px solid #ff664455", padding: "3px 8px", borderRadius: 3 }}>CLEAR</div>
               </div>
