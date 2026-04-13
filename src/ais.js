@@ -10,19 +10,25 @@ export const setAISKey = (k) => { try { k ? localStorage.setItem(KEY_STORAGE, k)
 // Type mapping: AIS ship type code → our type buckets
 function mapType(aisType) {
   const t = Number(aisType) || 0;
-  if (t >= 30 && t <= 39) return "NAVAL";        // military / law enforcement (heuristic)
-  if (t >= 80 && t <= 89) return "TANKER";       // tanker
-  if (t >= 70 && t <= 79) return "CARGO";        // cargo
+  if (t === 35 || (t >= 30 && t <= 39)) return "NAVAL";
+  if (t >= 80 && t <= 89) return "TANKER";
+  if (t >= 70 && t <= 79) return "CARGO";
   if (t >= 60 && t <= 69) return "PASSENGER";
-  if (t === 35) return "NAVAL";                   // military
   return "OTHER";
 }
 
-// Opens a websocket to aisstream.io with the given bounding boxes.
-// onUpdate(ships[]) is called with an aggregated fleet snapshot every ~2s.
-// Returns a close() function.
+// Valid coords only (filters out the dreaded 0/0, and out-of-range sentinels)
+const validCoord = (lat, lng) =>
+  Number.isFinite(lat) && Number.isFinite(lng) &&
+  Math.abs(lat) > 0.01 && Math.abs(lng) > 0.01 &&
+  Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
+
+// Opens a websocket to aisstream.io and aggregates ship state.
+// bboxes:  [[[lat_sw, lon_sw], [lat_ne, lon_ne]], ...]
+// onUpdate(ships[]) is called with a fleet snapshot every ~2s.
+// Returns { close, updateBBoxes }.
 export function connectAIS({ key, bboxes, onUpdate, onStatus }) {
-  if (!key) { onStatus?.({ state: "no-key" }); return () => {}; }
+  if (!key) { onStatus?.({ state: "no-key" }); return { close: () => {}, updateBBoxes: () => {} }; }
 
   const shipsByMmsi = new Map();
   let ws = null;
@@ -30,12 +36,25 @@ export function connectAIS({ key, bboxes, onUpdate, onStatus }) {
   let flushTimer = null;
   let reconnectTimer = null;
   let retries = 0;
+  let currentBBoxes = bboxes;
+  let msgCount = 0;
 
   const flush = () => {
     const now = Date.now();
-    // Drop stale entries (>10 min)
-    for (const [m, s] of shipsByMmsi) if (now - s.lastSeen > 600000) shipsByMmsi.delete(m);
+    // Drop ships not seen for 15 min
+    for (const [m, s] of shipsByMmsi) if (now - s.lastSeen > 900000) shipsByMmsi.delete(m);
     onUpdate?.(Array.from(shipsByMmsi.values()));
+  };
+
+  const sendSub = () => {
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    try {
+      ws.send(JSON.stringify({
+        APIKey: key,
+        BoundingBoxes: currentBBoxes,
+        FilterMessageTypes: ["PositionReport", "ShipStaticData"],
+      }));
+    } catch {}
   };
 
   const connect = () => {
@@ -45,30 +64,34 @@ export function connectAIS({ key, bboxes, onUpdate, onStatus }) {
     catch (e) { onStatus?.({ state: "error", msg: e.message }); scheduleReconnect(); return; }
 
     ws.onopen = () => {
-      retries = 0;
+      retries = 0; msgCount = 0;
       onStatus?.({ state: "connected" });
-      const sub = {
-        APIKey: key,
-        BoundingBoxes: bboxes,
-        FilterMessageTypes: ["PositionReport", "ShipStaticData"],
-      };
-      ws.send(JSON.stringify(sub));
+      sendSub();
     };
 
     ws.onmessage = (ev) => {
+      msgCount++;
       let msg; try { msg = JSON.parse(ev.data); } catch { return; }
+      if (msg.error) { onStatus?.({ state: "error", msg: String(msg.error).slice(0, 30) }); return; }
       const meta = msg.MetaData || {};
       const mmsi = meta.MMSI || meta.MMSI_String;
       if (!mmsi) return;
-      const prev = shipsByMmsi.get(mmsi) || { mmsi, type: "OTHER", flag: "??", length: 0, name: "" };
+      const prev = shipsByMmsi.get(mmsi) || { mmsi, type: "OTHER", flag: "??", length: 0, name: "", speed: 0, hdg: 0 };
+
+      const metaLat = meta.latitude ?? meta.Latitude;
+      const metaLng = meta.longitude ?? meta.Longitude;
 
       if (msg.MessageType === "PositionReport" && msg.Message?.PositionReport) {
         const p = msg.Message.PositionReport;
-        prev.lat = p.Latitude;
-        prev.lng = p.Longitude;
-        prev.hdg = p.Cog || p.TrueHeading || 0;
-        prev.speed = (p.Sog || 0);
-        prev.name = prev.name || meta.ShipName?.trim() || String(mmsi);
+        const lat = p.Latitude ?? metaLat;
+        const lng = p.Longitude ?? metaLng;
+        if (!validCoord(lat, lng)) return;
+        prev.lat = lat;
+        prev.lng = lng;
+        prev.hdg = (p.TrueHeading && p.TrueHeading < 360) ? p.TrueHeading : (p.Cog ?? prev.hdg ?? 0);
+        prev.speed = p.Sog ?? prev.speed ?? 0;
+        prev.name = prev.name || (meta.ShipName || "").trim() || String(mmsi);
+        prev.flag = prev.flag !== "??" ? prev.flag : mmsiToFlag(mmsi);
         prev.lastSeen = Date.now();
         shipsByMmsi.set(mmsi, prev);
       } else if (msg.MessageType === "ShipStaticData" && msg.Message?.ShipStaticData) {
@@ -78,29 +101,45 @@ export function connectAIS({ key, bboxes, onUpdate, onStatus }) {
         prev.length = (s.Dimension?.A || 0) + (s.Dimension?.B || 0);
         prev.callsign = (s.CallSign || "").trim();
         prev.flag = mmsiToFlag(mmsi);
+        // Keep existing lat/lng from PositionReport if we have one
+        if (validCoord(metaLat, metaLng) && !validCoord(prev.lat, prev.lng)) {
+          prev.lat = metaLat; prev.lng = metaLng;
+        }
         prev.lastSeen = Date.now();
-        shipsByMmsi.set(mmsi, prev);
+        // Only store if we have a valid position
+        if (validCoord(prev.lat, prev.lng)) shipsByMmsi.set(mmsi, prev);
       }
     };
 
     ws.onerror = () => { onStatus?.({ state: "error" }); };
-    ws.onclose = () => { if (!closed) { onStatus?.({ state: "disconnected" }); scheduleReconnect(); } };
+    ws.onclose = (ev) => {
+      if (!closed) {
+        onStatus?.({ state: "disconnected", msg: `code ${ev.code}` });
+        scheduleReconnect();
+      }
+    };
   };
 
   const scheduleReconnect = () => {
     if (closed) return;
-    const delay = Math.min(30000, 1000 * Math.pow(2, retries++));
+    const delay = Math.min(30000, 1500 * Math.pow(2, retries++));
     reconnectTimer = setTimeout(connect, delay);
   };
 
   flushTimer = setInterval(flush, 2000);
   connect();
 
-  return () => {
-    closed = true;
-    clearInterval(flushTimer);
-    clearTimeout(reconnectTimer);
-    try { ws?.close(); } catch {}
+  return {
+    close: () => {
+      closed = true;
+      clearInterval(flushTimer);
+      clearTimeout(reconnectTimer);
+      try { ws?.close(); } catch {}
+    },
+    updateBBoxes: (newBBoxes) => {
+      currentBBoxes = newBBoxes;
+      sendSub();
+    },
   };
 }
 
@@ -113,6 +152,13 @@ function mmsiToFlag(mmsi) {
     "431": "JP", "432": "JP", "441": "KR", "412": "CN", "413": "CN", "477": "HK",
     "353": "PA", "354": "PA", "538": "MH", "636": "LR", "256": "MT",
     "403": "SA", "470": "AE", "471": "AE", "422": "IR", "425": "IQ", "466": "QA", "447": "IL",
+    "244": "NL", "205": "BE", "215": "CY", "237": "GR", "248": "MT", "271": "TR",
   };
   return map[p] || p;
+}
+
+// Helper: convert REGIONS definition (lamin/lamax/lomin/lomax) to aisstream bboxes
+export function regionToBBoxes(region) {
+  // aisstream wants [[lat_sw, lon_sw], [lat_ne, lon_ne]]
+  return [[[region.lamin, region.lomin], [region.lamax, region.lomax]]];
 }

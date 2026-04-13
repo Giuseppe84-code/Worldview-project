@@ -8,7 +8,7 @@ import { generateShipFleet, shipColor } from "./ships";
 import { computeTerminator } from "./terminator";
 import { GPS_JAM_ZONES, jamColor, jamOpacity } from "./gpsJamming";
 import { FILTERS, FILTER_KEYS } from "./visualFilters";
-import { connectAIS, getAISKey, setAISKey } from "./ais";
+import { connectAIS, getAISKey, setAISKey, regionToBBoxes } from "./ais";
 
 export default function WorldView() {
   const canvasRef = useRef(null);
@@ -91,23 +91,32 @@ export default function WorldView() {
   useEffect(() => { const load = async () => { setSatStatus("Loading..."); const sats = await fetchSatellites(); if (sats.length > 0) { satsRef.current = sats; setSatCount(sats.length); setSatStatus(`${sats.length} SATS`); } else setSatStatus("FAILED"); }; load(); const iv = setInterval(load, 300000); return () => clearInterval(iv); }, []);
   useEffect(() => { const load = async () => { const q = await fetchEarthquakes(); quakesRef.current = q; setQuakeCount(q.length); }; load(); const iv = setInterval(load, 120000); return () => clearInterval(iv); }, []);
   // Ships: live AIS if key present, otherwise simulated fleet
+  const aisHandleRef = useRef(null);
   useEffect(() => {
     if (!aisKey) {
       const s = generateShipFleet(18); shipsRef.current = s; setShipCount(s.length); setAisStatus("SIMULATED");
       return;
     }
-    // Global bounding boxes (whole world split to stay within aisstream free limits)
-    const bboxes = [[[-85, -180], [85, 180]]];
-    const close = connectAIS({
+    // Subscribe to current region bbox (free tier prefers bounded subs)
+    const handle = connectAIS({
       key: aisKey,
-      bboxes,
+      bboxes: regionToBBoxes(REGIONS[region]),
       onUpdate: (ships) => { shipsRef.current = ships; setShipCount(ships.length); },
       onStatus: ({ state, msg }) => {
-        setAisStatus(state === "connected" ? "LIVE AIS" : state === "connecting" ? "CONNECTING" : state === "error" ? `ERR${msg ? ": " + msg.slice(0, 15) : ""}` : state.toUpperCase());
+        setAisStatus(state === "connected" ? "LIVE AIS" : state === "connecting" ? "CONNECTING" : state === "error" ? `ERR${msg ? ":" + msg.slice(0, 15) : ""}` : state === "disconnected" ? `DROP ${msg || ""}`.trim() : state.toUpperCase());
       },
     });
-    return close;
+    aisHandleRef.current = handle;
+    return () => { handle.close(); aisHandleRef.current = null; };
   }, [aisKey]);
+
+  // Update AIS subscription when region changes (no reconnect)
+  useEffect(() => {
+    if (aisHandleRef.current) {
+      aisHandleRef.current.updateBBoxes(regionToBBoxes(REGIONS[region]));
+      shipsRef.current = []; setShipCount(0);
+    }
+  }, [region]);
 
   const saveAisKey = () => { const k = aisKeyInput.trim(); setAISKey(k); setAisKeyState(k); setAisKeyInput(""); };
   const clearAisKey = () => { setAISKey(""); setAisKeyState(""); shipsRef.current = []; setShipCount(0); setAisStatus("SIMULATED"); };
@@ -544,8 +553,8 @@ export default function WorldView() {
             {aisKey ? (
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
                 <div>
-                  <div style={{ color: "#00ffaa", fontSize: 11, fontWeight: "bold" }}>AIS key set &middot; {aisStatus}</div>
-                  <div style={{ color: "#1a3a5c", fontSize: 9 }}>Source: aisstream.io</div>
+                  <div style={{ color: aisStatus === "LIVE AIS" ? "#00ffaa" : aisStatus.startsWith("ERR") || aisStatus.startsWith("DROP") ? "#ff6644" : "#ffaa00", fontSize: 11, fontWeight: "bold" }}>{aisStatus}</div>
+                  <div style={{ color: "#1a3a5c", fontSize: 9 }}>aisstream.io &middot; bbox: {REGIONS[region].label}</div>
                 </div>
                 <div onClick={clearAisKey} style={{ color: "#ff6644", fontSize: 10, cursor: "pointer", border: "1px solid #ff664455", padding: "3px 8px", borderRadius: 3 }}>CLEAR</div>
               </div>
