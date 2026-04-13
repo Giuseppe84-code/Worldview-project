@@ -1,15 +1,13 @@
-// WorldView service worker — cache-first for app shell, network-first for APIs
-const CACHE = "worldview-v1";
+// WorldView service worker
+// - HTML/navigation: network-first (so new deploys are picked up instantly)
+// - Hashed static assets (JS/CSS/images): cache-first
+// - Live data feeds: pass-through, never cached
+const CACHE = "worldview-v3";
 const SCOPE = "/Worldview-project/";
-const SHELL = [
-  SCOPE,
-  SCOPE + "manifest.webmanifest",
-  SCOPE + "icon-192.png",
-  SCOPE + "icon-512.png",
-];
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  // Activate the new SW immediately on install
+  e.waitUntil(self.skipWaiting());
 });
 
 self.addEventListener("activate", (e) => {
@@ -20,21 +18,40 @@ self.addEventListener("activate", (e) => {
   );
 });
 
-self.addEventListener("fetch", (e) => {
-  const url = new URL(e.request.url);
-  // Never cache live data feeds
-  const isLiveFeed =
-    url.hostname.includes("opensky-network.org") ||
-    url.hostname.includes("earthquake.usgs.gov") ||
-    url.hostname.includes("celestrak.org") ||
-    url.hostname.includes("aisstream.io");
+self.addEventListener("message", (ev) => {
+  if (ev.data === "SKIP_WAITING") self.skipWaiting();
+});
 
-  if (isLiveFeed) {
+const isLiveFeed = (url) =>
+  url.hostname.includes("opensky-network.org") ||
+  url.hostname.includes("earthquake.usgs.gov") ||
+  url.hostname.includes("celestrak.org") ||
+  url.hostname.includes("aisstream.io");
+
+self.addEventListener("fetch", (e) => {
+  if (e.request.method !== "GET") return;
+  const url = new URL(e.request.url);
+
+  // Never cache live data feeds
+  if (isLiveFeed(url)) {
     e.respondWith(fetch(e.request).catch(() => new Response("{}", { headers: { "Content-Type": "application/json" } })));
     return;
   }
 
-  // App shell + static assets: cache-first
+  // Navigation / HTML → network-first, fall back to cache
+  const isHTML = e.request.mode === "navigate" || (e.request.headers.get("accept") || "").includes("text/html");
+  if (isHTML) {
+    e.respondWith(
+      fetch(e.request).then((res) => {
+        const clone = res.clone();
+        caches.open(CACHE).then((c) => c.put(e.request, clone));
+        return res;
+      }).catch(() => caches.match(e.request).then((c) => c || caches.match(SCOPE)))
+    );
+    return;
+  }
+
+  // Hashed static assets → cache-first (safe because Vite content-hashes filenames)
   if (url.origin === location.origin || url.hostname.includes("jsdelivr.net") || url.hostname.includes("unpkg.com")) {
     e.respondWith(
       caches.match(e.request).then((cached) => {
