@@ -35,15 +35,26 @@ export function connectAIS({ key, bboxes, onUpdate, onStatus }) {
   let closed = false;
   let flushTimer = null;
   let reconnectTimer = null;
+  let watchdogTimer = null;
   let retries = 0;
   let currentBBoxes = bboxes;
   let msgCount = 0;
+  let lastMsgAt = 0;
 
   const flush = () => {
     const now = Date.now();
     // Drop ships not seen for 15 min
     for (const [m, s] of shipsByMmsi) if (now - s.lastSeen > 900000) shipsByMmsi.delete(m);
     onUpdate?.(Array.from(shipsByMmsi.values()));
+  };
+
+  // Watchdog: if no message for >45s, force a reconnect (dead-socket detection)
+  const tickWatchdog = () => {
+    if (closed) return;
+    if (ws && ws.readyState === WebSocket.OPEN && lastMsgAt && Date.now() - lastMsgAt > 45000) {
+      onStatus?.({ state: "disconnected", msg: "idle" });
+      try { ws.close(); } catch {}
+    }
   };
 
   const sendSub = () => {
@@ -64,13 +75,14 @@ export function connectAIS({ key, bboxes, onUpdate, onStatus }) {
     catch (e) { onStatus?.({ state: "error", msg: e.message }); scheduleReconnect(); return; }
 
     ws.onopen = () => {
-      retries = 0; msgCount = 0;
+      retries = 0; msgCount = 0; lastMsgAt = Date.now();
       onStatus?.({ state: "connected" });
       sendSub();
     };
 
     ws.onmessage = (ev) => {
       msgCount++;
+      lastMsgAt = Date.now();
       let msg; try { msg = JSON.parse(ev.data); } catch { return; }
       if (msg.error) { onStatus?.({ state: "error", msg: String(msg.error).slice(0, 30) }); return; }
       const meta = msg.MetaData || {};
@@ -127,12 +139,14 @@ export function connectAIS({ key, bboxes, onUpdate, onStatus }) {
   };
 
   flushTimer = setInterval(flush, 2000);
+  watchdogTimer = setInterval(tickWatchdog, 10000);
   connect();
 
   return {
     close: () => {
       closed = true;
       clearInterval(flushTimer);
+      clearInterval(watchdogTimer);
       clearTimeout(reconnectTimer);
       try { ws?.close(); } catch {}
     },
@@ -140,6 +154,7 @@ export function connectAIS({ key, bboxes, onUpdate, onStatus }) {
       currentBBoxes = newBBoxes;
       sendSub();
     },
+    stats: () => ({ msgCount, ships: shipsByMmsi.size, connected: ws?.readyState === WebSocket.OPEN }),
   };
 }
 
