@@ -580,7 +580,7 @@ export default function WorldView() {
           </div>
           {aisDebug && aisStats && (
             <div style={{ background: "#00aaff11", border: "1px solid #00aaff44", borderRadius: 3, padding: "6px 8px", marginBottom: 8, fontSize: 10, color: "#aac", fontFamily: "monospace" }}>
-              <div style={{ color: "#00aaff", fontWeight: "bold", marginBottom: 4 }}>AIS DIAGNOSTIC <span style={{ color: "#6a7", fontWeight: "normal", fontSize: 9 }}>build v5</span></div>
+              <div style={{ color: "#00aaff", fontWeight: "bold", marginBottom: 4 }}>AIS DIAGNOSTIC</div>
               <div>msg total: {aisStats.msgCount} &middot; ships: {aisStats.ships} &middot; ws: {aisStats.readyState === 0 ? "CONNECTING" : aisStats.readyState === 1 ? "OPEN" : aisStats.readyState === 2 ? "CLOSING" : aisStats.readyState === 3 ? "CLOSED" : "n/a"}</div>
               <div>pos updates: {aisStats.diag?.pos || 0} &middot; no-coord: {aisStats.diag?.noCoord || 0} &middot; no-mmsi: {aisStats.diag?.noMmsi || 0} &middot; static-only: {aisStats.diag?.staticOnly || 0}</div>
               <div>parse-err: {aisStats.diag?.parseErr || 0} &middot; binary: {aisStats.diag?.binary || 0} &middot; non-obj: {aisStats.diag?.nonObject || 0} &middot; handler-err: {aisStats.diag?.handlerErr || 0} &middot; api-err: {aisStats.diag?.apiError || 0} &middot; payload: {aisStats.diag?.dataType || "?"}</div>
