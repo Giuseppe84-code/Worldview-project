@@ -42,6 +42,8 @@ export function connectAIS({ key, bboxes, onUpdate, onStatus }) {
   let currentBBoxes = bboxes;
   let msgCount = 0;
   let lastMsgAt = 0;
+  const diag = { noMmsi: 0, noCoord: 0, pos: 0, staticOnly: 0, unknown: 0, types: {} };
+  let firstSample = null;
 
   const flush = () => {
     const now = Date.now();
@@ -87,9 +89,12 @@ export function connectAIS({ key, bboxes, onUpdate, onStatus }) {
       lastMsgAt = Date.now();
       let msg; try { msg = JSON.parse(ev.data); } catch { return; }
       if (msg.error) { onStatus?.({ state: "error", msg: String(msg.error).slice(0, 30) }); return; }
+      if (!firstSample) firstSample = msg;
+      const t = msg.MessageType || "UNKNOWN";
+      diag.types[t] = (diag.types[t] || 0) + 1;
       const meta = msg.MetaData || {};
       const mmsi = meta.MMSI ?? meta.MMSI_String ?? meta.UserID;
-      if (!mmsi) return;
+      if (!mmsi) { diag.noMmsi++; return; }
       const prev = shipsByMmsi.get(mmsi) || { mmsi, type: "OTHER", flag: "??", length: 0, name: "", speed: 0, hdg: 0 };
       const m = msg.Message || {};
 
@@ -106,6 +111,7 @@ export function connectAIS({ key, bboxes, onUpdate, onStatus }) {
 
       // Always update position if we have valid coords from anywhere
       if (validCoord(lat, lng)) {
+        diag.pos++;
         prev.lat = lat;
         prev.lng = lng;
         if (posPayload) {
@@ -120,10 +126,13 @@ export function connectAIS({ key, bboxes, onUpdate, onStatus }) {
         shipsByMmsi.set(mmsi, prev);
       }
 
+      if (!validCoord(lat, lng)) diag.noCoord++;
+
       // Static data (may come separately — enrich existing entry)
       const staticPayload = m.ShipStaticData || m.StaticDataReport?.ReportA
         || m.StaticDataReport?.ReportB || m.StaticDataReport;
       if (staticPayload) {
+        if (!validCoord(lat, lng)) diag.staticOnly++;
         const s = staticPayload;
         prev.name = (s.Name || s.ShipName || prev.name || "").trim() || String(mmsi);
         if (s.Type != null) prev.type = mapType(s.Type);
@@ -168,7 +177,7 @@ export function connectAIS({ key, bboxes, onUpdate, onStatus }) {
       currentBBoxes = newBBoxes;
       sendSub();
     },
-    stats: () => ({ msgCount, ships: shipsByMmsi.size, connected: ws?.readyState === WebSocket.OPEN }),
+    stats: () => ({ msgCount, ships: shipsByMmsi.size, connected: ws?.readyState === WebSocket.OPEN, diag, firstSample }),
   };
 }
 

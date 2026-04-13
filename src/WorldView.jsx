@@ -93,6 +93,8 @@ export default function WorldView() {
   // Ships: live AIS if key present, otherwise simulated fleet
   const aisHandleRef = useRef(null);
   const [aisMsgCount, setAisMsgCount] = useState(0);
+  const [aisDebug, setAisDebug] = useState(false);
+  const [aisStats, setAisStats] = useState(null);
   useEffect(() => {
     if (!aisKey) {
       const s = generateShipFleet(18); shipsRef.current = s; setShipCount(s.length); setAisStatus("SIMULATED"); setAisMsgCount(0);
@@ -108,8 +110,8 @@ export default function WorldView() {
       },
     });
     aisHandleRef.current = handle;
-    // Poll stats for msg counter
-    const statIv = setInterval(() => { const s = handle.stats?.(); if (s) setAisMsgCount(s.msgCount); }, 1500);
+    // Poll stats for msg counter + diag
+    const statIv = setInterval(() => { const s = handle.stats?.(); if (s) { setAisMsgCount(s.msgCount); setAisStats(s); } }, 1500);
     return () => { clearInterval(statIv); handle.close(); aisHandleRef.current = null; };
   }, [aisKey]);
 
@@ -559,7 +561,10 @@ export default function WorldView() {
                   <div style={{ color: aisStatus === "LIVE AIS" ? "#00ffaa" : aisStatus.startsWith("ERR") || aisStatus.startsWith("DROP") ? "#ff6644" : "#ffaa00", fontSize: 11, fontWeight: "bold" }}>{aisStatus}</div>
                   <div style={{ color: "#1a3a5c", fontSize: 9 }}>aisstream.io &middot; bbox: {REGIONS[region].label} &middot; {aisMsgCount} msg</div>
                 </div>
-                <div onClick={clearAisKey} style={{ color: "#ff6644", fontSize: 10, cursor: "pointer", border: "1px solid #ff664455", padding: "3px 8px", borderRadius: 3 }}>CLEAR</div>
+                <div style={{ display: "flex", gap: 4 }}>
+                  <div onClick={() => setAisDebug(d => !d)} style={{ color: "#00aaff", fontSize: 10, cursor: "pointer", border: "1px solid #00aaff55", padding: "3px 8px", borderRadius: 3 }}>{aisDebug ? "HIDE" : "DEBUG"}</div>
+                  <div onClick={clearAisKey} style={{ color: "#ff6644", fontSize: 10, cursor: "pointer", border: "1px solid #ff664455", padding: "3px 8px", borderRadius: 3 }}>CLEAR</div>
+                </div>
               </div>
             ) : (
               <div>
@@ -573,6 +578,20 @@ export default function WorldView() {
               </div>
             )}
           </div>
+          {aisDebug && aisStats && (
+            <div style={{ background: "#00aaff11", border: "1px solid #00aaff44", borderRadius: 3, padding: "6px 8px", marginBottom: 8, fontSize: 10, color: "#aac", fontFamily: "monospace" }}>
+              <div style={{ color: "#00aaff", fontWeight: "bold", marginBottom: 4 }}>AIS DIAGNOSTIC</div>
+              <div>msg total: {aisStats.msgCount} &middot; ships: {aisStats.ships} &middot; connected: {String(aisStats.connected)}</div>
+              <div>pos updates: {aisStats.diag?.pos || 0} &middot; no-coord: {aisStats.diag?.noCoord || 0} &middot; no-mmsi: {aisStats.diag?.noMmsi || 0} &middot; static-only: {aisStats.diag?.staticOnly || 0}</div>
+              <div style={{ marginTop: 4, color: "#778" }}>types: {Object.entries(aisStats.diag?.types || {}).map(([t, n]) => `${t}=${n}`).join(" ")}</div>
+              {aisStats.firstSample && (
+                <details style={{ marginTop: 4 }}>
+                  <summary style={{ color: "#00aaff", cursor: "pointer" }}>first sample</summary>
+                  <pre style={{ margin: 4, fontSize: 9, whiteSpace: "pre-wrap", wordBreak: "break-all", color: "#88a", maxHeight: 150, overflow: "auto" }}>{JSON.stringify(aisStats.firstSample, null, 2)}</pre>
+                </details>
+              )}
+            </div>
+          )}
           {shipsRef.current.slice(0, 50).map((s, i) => (
             <div key={i} onClick={() => { rotRef.current = { lng: -s.lng, lat: s.lat }; setSelected({ type: "ship", data: s, x: window.innerWidth/2, y: 200 }); }}
               style={{ padding: "5px 8px", marginBottom: 3, background: shipColor(s.type) + "11", border: `1px solid ${shipColor(s.type)}44`, borderRadius: 3, cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
