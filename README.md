@@ -1,6 +1,6 @@
 # 🌍 WorldView — Geospatial OSINT Command Center
 
-A real-time geopolitical monitoring tool inspired by [Bilawal Sidhu's God's Eye](https://www.youtube.com/@bilawalsidhu). Built with React, D3.js orthographic projection, and live data feeds.
+A real-time geopolitical monitoring tool. Built with React, D3.js orthographic projection, and live data feeds.
 
 ## Features
 
@@ -74,10 +74,6 @@ src/
 - [ ] Real day/night terminator
 - [ ] Traffic anomaly alerts (airspace clearing detection)
 - [ ] Timeline replay mode
-
-## Inspired By
-
-Bilawal Sidhu's [WorldView / God's Eye](https://www.spatialintelligence.ai/p/the-intelligence-monopoly-is-over) project, which demonstrated that a single developer with public data and AI can build intelligence-grade geospatial visualization.
 
 ## License
 

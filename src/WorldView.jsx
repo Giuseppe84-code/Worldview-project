@@ -720,7 +720,7 @@ export default function WorldView() {
             <div>&bull; F cycle filter &middot; / search &middot; Esc close</div>
 
             <div style={{ color: "#778", fontSize: 9, marginTop: 12, borderTop: "1px solid #1a3a5c33", paddingTop: 6 }}>
-              Inspired by Bilawal Sidhu&apos;s "God&apos;s Eye" &middot; Built with React + D3 &middot; All data is public OSINT. Not for operational use.
+              Built with React + D3 &middot; All data is public OSINT. Not for operational use.
             </div>
           </div>
         </div>
