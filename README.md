@@ -1,8 +1,14 @@
 # WorldView — Geospatial OSINT Command Center
 
+![Deploy](https://img.shields.io/github/deployments/Giuseppe84-code/Worldview-project/github-pages?label=deploy&logo=github)
+![Last commit](https://img.shields.io/github/last-commit/Giuseppe84-code/Worldview-project)
+![License](https://img.shields.io/github/license/Giuseppe84-code/Worldview-project)
+![Stars](https://img.shields.io/github/stars/Giuseppe84-code/Worldview-project?style=social)
+
 A real-time situational-awareness dashboard that aggregates public feeds — flights, vessels, satellites, earthquakes, GPS-jamming zones — onto a single orthographic globe. Runs entirely in the browser, installable as a PWA, no backend.
 
 **Live demo:** https://giuseppe84-code.github.io/Worldview-project/
+**Consulting pitch:** https://giuseppe84-code.github.io/Worldview-project/landing.html
 
 <!-- Add hero screenshot here: docs/hero.png -->
 
