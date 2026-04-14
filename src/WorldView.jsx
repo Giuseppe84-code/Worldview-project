@@ -90,6 +90,8 @@ export default function WorldView() {
       if (key === "/") { e.preventDefault(); setSearchOpen(true); setTimeout(() => searchInputRef.current?.focus(), 50); }
       // Escape: close search/panel/selected
       if (key === "Escape") { if (searchOpen) { setSearchOpen(false); setSearchQuery(""); } else if (selected) { setSelected(null); } else if (panel) { setPanel(null); } }
+      // AIS debug panel: Shift+D
+      if (e.shiftKey && (key === "D" || key === "d")) { e.preventDefault(); setAisDebug(v => !v); }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
@@ -436,6 +438,11 @@ export default function WorldView() {
         </div>
       )}
 
+      {/* FOOTER CREDIT */}
+      <div style={{ position: "fixed", bottom: 84, right: 10, zIndex: 9996, color: "#1a3a5c", fontSize: 9, letterSpacing: 1, pointerEvents: "auto", opacity: 0.7 }}>
+        built by <a href="https://github.com/Giuseppe84-code" target="_blank" rel="noopener noreferrer" style={{ color: "#1a3a5c", textDecoration: "none", borderBottom: "1px dotted #1a3a5c88" }}>Giuseppe84-code</a> &middot; geospatial dashboards on demand
+      </div>
+
       {/* BOTTOM BAR */}
       <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 9999, background: F.bg, borderTop: "1px solid #1a3a5c33", padding: "6px 10px" }}>
         <div style={{ display: "flex", justifyContent: "center", gap: 4, marginBottom: 6 }}>
@@ -576,7 +583,6 @@ export default function WorldView() {
                   <div style={{ color: "#1a3a5c", fontSize: 9 }}>aisstream.io &middot; bbox: {REGIONS[region].label} &middot; {aisMsgCount} msg</div>
                 </div>
                 <div style={{ display: "flex", gap: 4 }}>
-                  <div onClick={() => setAisDebug(d => !d)} style={{ color: "#00aaff", fontSize: 10, cursor: "pointer", border: "1px solid #00aaff55", padding: "3px 8px", borderRadius: 3 }}>{aisDebug ? "HIDE" : "DEBUG"}</div>
                   <div onClick={clearAisKey} style={{ color: "#ff6644", fontSize: 10, cursor: "pointer", border: "1px solid #ff664455", padding: "3px 8px", borderRadius: 3 }}>CLEAR</div>
                 </div>
               </div>
@@ -594,7 +600,10 @@ export default function WorldView() {
           </div>
           {aisDebug && aisStats && (
             <div style={{ background: "#00aaff11", border: "1px solid #00aaff44", borderRadius: 3, padding: "6px 8px", marginBottom: 8, fontSize: 10, color: "#aac", fontFamily: "monospace" }}>
-              <div style={{ color: "#00aaff", fontWeight: "bold", marginBottom: 4 }}>AIS DIAGNOSTIC</div>
+              <div style={{ color: "#00aaff", fontWeight: "bold", marginBottom: 4, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>AIS DIAGNOSTIC <span style={{ color: "#556", fontWeight: "normal", fontSize: 9 }}>Shift+D to toggle</span></span>
+                <span onClick={() => setAisDebug(false)} style={{ cursor: "pointer", color: "#556", fontSize: 11 }}>x</span>
+              </div>
               <div>msg total: {aisStats.msgCount} &middot; ships: {aisStats.ships} &middot; ws: {aisStats.readyState === 0 ? "CONNECTING" : aisStats.readyState === 1 ? "OPEN" : aisStats.readyState === 2 ? "CLOSING" : aisStats.readyState === 3 ? "CLOSED" : "n/a"}</div>
               <div>pos updates: {aisStats.diag?.pos || 0} &middot; no-coord: {aisStats.diag?.noCoord || 0} &middot; no-mmsi: {aisStats.diag?.noMmsi || 0} &middot; static-only: {aisStats.diag?.staticOnly || 0}</div>
               <div>parse-err: {aisStats.diag?.parseErr || 0} &middot; binary: {aisStats.diag?.binary || 0} &middot; non-obj: {aisStats.diag?.nonObject || 0} &middot; handler-err: {aisStats.diag?.handlerErr || 0} &middot; api-err: {aisStats.diag?.apiError || 0} &middot; payload: {aisStats.diag?.dataType || "?"}</div>
