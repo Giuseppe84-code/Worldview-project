@@ -11,6 +11,7 @@ A real-time situational-awareness dashboard that aggregates public feeds — fli
 **Consulting pitch:** https://giuseppe84-code.github.io/Worldview-project/landing.html
 
 <!-- Add hero screenshot here: docs/hero.png -->
+![WorldView — live orthographic globe with vessels, flights, and GPS-jamming zones](docs/hero.png)
 
 ---
 

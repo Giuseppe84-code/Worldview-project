@@ -10,6 +10,9 @@
 <meta property="og:description" content="Custom OSINT & maritime dashboards. Client-only, PWA, $0 infra. Shipped in 2-4 weeks." />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://giuseppe84-code.github.io/Worldview-project/landing.html" />
+<meta property="og:image" content="https://giuseppe84-code.github.io/Worldview-project/og.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="https://giuseppe84-code.github.io/Worldview-project/og.png" />
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
 <style>
   :root {
@@ -46,6 +49,8 @@
   .hero h1 { font-size: clamp(32px, 5vw, 52px); line-height: 1.1; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 24px; }
   .hero h1 .hl { color: var(--accent); }
   .hero p.lead { font-size: clamp(16px, 2vw, 19px); color: var(--fg-dim); max-width: 620px; margin-bottom: 40px; }
+  .hero-img { margin-top: 56px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; box-shadow: 0 24px 80px rgba(107, 225, 255, 0.08); }
+  .hero-img img { display: block; width: 100%; height: auto; }
   .cta-row { display: flex; gap: 12px; flex-wrap: wrap; }
   .btn { display: inline-block; padding: 14px 22px; border-radius: 6px; font-weight: 600; font-size: 14px; letter-spacing: 0.3px; border: 1px solid transparent; transition: all 0.15s ease; }
   .btn-primary { background: var(--accent); color: var(--bg); }
@@ -130,6 +135,9 @@
     <div class="cta-row">
       <a href="#contact" class="btn btn-primary">Get in touch</a>
       <a href="./" class="btn btn-secondary">See live demo →</a>
+    </div>
+    <div class="hero-img">
+      <a href="./"><img src="hero.png" alt="WorldView orthographic globe with live vessels, flights, and GPS-jamming zones" /></a>
     </div>
   </div>
 </header>
