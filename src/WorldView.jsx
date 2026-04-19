@@ -27,6 +27,20 @@ export default function WorldView() {
   const [satStatus, setSatStatus] = useState("");
   const [quakeCount, setQuakeCount] = useState(0);
   const [shipCount, setShipCount] = useState(0);
+  const [shipTypeHide, setShipTypeHide] = useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem("wv_ship_filter") || "[]")); }
+    catch { return new Set(); }
+  });
+  const shipTypeHideRef = useRef(shipTypeHide);
+  useEffect(() => {
+    shipTypeHideRef.current = shipTypeHide;
+    try { localStorage.setItem("wv_ship_filter", JSON.stringify([...shipTypeHide])); } catch {}
+  }, [shipTypeHide]);
+  const toggleShipType = (t) => setShipTypeHide(prev => {
+    const next = new Set(prev);
+    next.has(t) ? next.delete(t) : next.add(t);
+    return next;
+  });
   const rotRef = useRef({ lng: -50, lat: 25 });
   const zoomRef = useRef(1);
   const dragRef = useRef({ dragging: false, lx: 0, ly: 0, moved: false });
@@ -76,6 +90,8 @@ export default function WorldView() {
       if (key === "/") { e.preventDefault(); setSearchOpen(true); setTimeout(() => searchInputRef.current?.focus(), 50); }
       // Escape: close search/panel/selected
       if (key === "Escape") { if (searchOpen) { setSearchOpen(false); setSearchQuery(""); } else if (selected) { setSelected(null); } else if (panel) { setPanel(null); } }
+      // AIS debug panel: Shift+D
+      if (e.shiftKey && (key === "D" || key === "d")) { e.preventDefault(); setAisDebug(v => !v); }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
@@ -258,14 +274,14 @@ export default function WorldView() {
       if (layers.quakes) { quakesRef.current.forEach(q => { const p = projection([q.lng, q.lat]); if (!p) return; if (d3.geoDistance([q.lng, q.lat], [rLng, rLat])>Math.PI/2) return; const sz = quakeSize(q.mag); const col = quakeColor(q.mag); ctx.beginPath(); ctx.arc(p[0], p[1], sz+3*Math.sin(autoT*3), 0, Math.PI*2); ctx.strokeStyle = col+"55"; ctx.lineWidth = 1; ctx.stroke(); ctx.beginPath(); ctx.arc(p[0], p[1], sz, 0, Math.PI*2); ctx.fillStyle = col; ctx.fill(); if (q.mag >= 4 && Z > 0.7) { ctx.font = "bold 7px monospace"; ctx.fillStyle = col+"bb"; ctx.fillText(`M${q.mag.toFixed(1)}`, p[0]+sz+3, p[1]+2); } }); }
 
       // Ships
-      if (layers.ships) { shipsRef.current.forEach(s => { const p = projection([s.lng, s.lat]); if (!p) return; if (d3.geoDistance([s.lng, s.lat], [rLng, rLat])>Math.PI/2) return; const col = shipColor(s.type); const sz = s.type==="NAVAL"?3.5:2.5; ctx.beginPath(); ctx.moveTo(p[0],p[1]-sz); ctx.lineTo(p[0]+sz*0.7,p[1]); ctx.lineTo(p[0],p[1]+sz); ctx.lineTo(p[0]-sz*0.7,p[1]); ctx.closePath(); ctx.fillStyle = col; ctx.fill(); if (s.hdg) { const h=s.hdg*Math.PI/180; const ep = projection([s.lng+Math.sin(h)*0.8, s.lat+Math.cos(h)*0.8]); if (ep) { ctx.beginPath(); ctx.moveTo(p[0],p[1]); ctx.lineTo(ep[0],ep[1]); ctx.strokeStyle=col+"66"; ctx.lineWidth=0.8; ctx.stroke(); } } if (s.type==="NAVAL"&&Z>0.9) { ctx.font="bold 7px monospace"; ctx.fillStyle=col+"99"; ctx.fillText(s.name,p[0]+5,p[1]+2); } }); }
+      if (layers.ships) { shipsRef.current.forEach(s => { if (shipTypeHideRef.current.has(s.type)) return; const p = projection([s.lng, s.lat]); if (!p) return; if (d3.geoDistance([s.lng, s.lat], [rLng, rLat])>Math.PI/2) return; const col = shipColor(s.type); const sz = s.type==="NAVAL"?3.5:2.5; ctx.beginPath(); ctx.moveTo(p[0],p[1]-sz); ctx.lineTo(p[0]+sz*0.7,p[1]); ctx.lineTo(p[0],p[1]+sz); ctx.lineTo(p[0]-sz*0.7,p[1]); ctx.closePath(); ctx.fillStyle = col; ctx.fill(); if (s.hdg) { const h=s.hdg*Math.PI/180; const ep = projection([s.lng+Math.sin(h)*0.8, s.lat+Math.cos(h)*0.8]); if (ep) { ctx.beginPath(); ctx.moveTo(p[0],p[1]); ctx.lineTo(ep[0],ep[1]); ctx.strokeStyle=col+"66"; ctx.lineWidth=0.8; ctx.stroke(); } } if (s.type==="NAVAL"&&Z>0.9) { ctx.font="bold 7px monospace"; ctx.fillStyle=col+"99"; ctx.fillText(s.name,p[0]+5,p[1]+2); } }); }
 
       const g2 = ctx.createRadialGradient(cx-R*0.3,cy-R*0.3,0,cx,cy,R); g2.addColorStop(0, F.reflection); g2.addColorStop(1, "transparent"); ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2); ctx.fillStyle = g2; ctx.fill();
       ctx.strokeStyle = F.crosshair; ctx.lineWidth = 0.8; [[cx,cy-22,cx,cy-8],[cx,cy+8,cx,cy+22],[cx-22,cy,cx-8,cy],[cx+8,cy,cx+22,cy]].forEach(([x1,y1,x2,y2]) => { ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke(); });
     };
     render();
     return () => { cancelAnimationFrame(animId); };
-  }, [mapLoaded, layers, visualFilter, searchQuery]);
+  }, [mapLoaded, layers, visualFilter, searchQuery, shipTypeHide]);
 
   // ── Interaction handlers ──
   const lastDistRef = useRef(0);
@@ -279,7 +295,7 @@ export default function WorldView() {
       if (layers.flights) { flightsRef.current.forEach(f => { const p = proj2([f.lng,f.lat]); if (!p) return; if (d3.geoDistance([f.lng,f.lat],[rLng,rLat])>Math.PI/2) return; const dist = Math.sqrt((p[0]-tapX)**2+(p[1]-tapY)**2); if (dist<bestDist) { bestDist=dist; const isMil = !f.cs||MIL_PREFIXES.some(x=>f.cs.startsWith(x))||(f.alt>0&&f.alt<1500&&f.vel>150); bestItem={type:"flight",data:f,isMil,x:tapX,y:tapY}; } }); }
       if (layers.sats) { const now = Date.now(); satsRef.current.forEach(sat => { try { const pos = computeSatPosition(sat,now); if (!pos||isNaN(pos.lat)||isNaN(pos.lng)) return; const p = proj2([pos.lng,pos.lat]); if (!p) return; if (d3.geoDistance([pos.lng,pos.lat],[rLng,rLat])>Math.PI/2) return; const dist = Math.sqrt((p[0]-tapX)**2+(p[1]-tapY)**2); if (dist<bestDist) { bestDist=dist; bestItem={type:"sat",data:sat,pos,x:tapX,y:tapY}; } } catch {} }); }
       if (layers.quakes) { quakesRef.current.forEach(q => { const p = proj2([q.lng,q.lat]); if (!p) return; if (d3.geoDistance([q.lng,q.lat],[rLng,rLat])>Math.PI/2) return; const dist = Math.sqrt((p[0]-tapX)**2+(p[1]-tapY)**2); if (dist<bestDist) { bestDist=dist; bestItem={type:"quake",data:q,x:tapX,y:tapY}; } }); }
-      if (layers.ships) { shipsRef.current.forEach(s => { const p = proj2([s.lng,s.lat]); if (!p) return; if (d3.geoDistance([s.lng,s.lat],[rLng,rLat])>Math.PI/2) return; const dist = Math.sqrt((p[0]-tapX)**2+(p[1]-tapY)**2); if (dist<bestDist) { bestDist=dist; bestItem={type:"ship",data:s,x:tapX,y:tapY}; } }); }
+      if (layers.ships) { shipsRef.current.forEach(s => { if (shipTypeHideRef.current.has(s.type)) return; const p = proj2([s.lng,s.lat]); if (!p) return; if (d3.geoDistance([s.lng,s.lat],[rLng,rLat])>Math.PI/2) return; const dist = Math.sqrt((p[0]-tapX)**2+(p[1]-tapY)**2); if (dist<bestDist) { bestDist=dist; bestItem={type:"ship",data:s,x:tapX,y:tapY}; } }); }
       if (layers.gpsJam) { GPS_JAM_ZONES.forEach(z => { const p = proj2([z.lng,z.lat]); if (!p) return; if (d3.geoDistance([z.lng,z.lat],[rLng,rLat])>Math.PI/2) return; const dist = Math.sqrt((p[0]-tapX)**2+(p[1]-tapY)**2); if (dist<bestDist) { bestDist=dist; bestItem={type:"gpsJam",data:z,x:tapX,y:tapY}; } }); }
       if (bestItem) setSelected(bestItem); else setSelected(null);
     }
@@ -422,6 +438,11 @@ export default function WorldView() {
         </div>
       )}
 
+      {/* FOOTER CREDIT */}
+      <div style={{ position: "fixed", bottom: 84, right: 10, zIndex: 9996, color: "#1a3a5c", fontSize: 9, letterSpacing: 1, pointerEvents: "auto", opacity: 0.7 }}>
+        built by <a href="https://github.com/Giuseppe84-code" target="_blank" rel="noopener noreferrer" style={{ color: "#1a3a5c", textDecoration: "none", borderBottom: "1px dotted #1a3a5c88" }}>Giuseppe84-code</a> &middot; geospatial dashboards on demand
+      </div>
+
       {/* BOTTOM BAR */}
       <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 9999, background: F.bg, borderTop: "1px solid #1a3a5c33", padding: "6px 10px" }}>
         <div style={{ display: "flex", justifyContent: "center", gap: 4, marginBottom: 6 }}>
@@ -562,7 +583,6 @@ export default function WorldView() {
                   <div style={{ color: "#1a3a5c", fontSize: 9 }}>aisstream.io &middot; bbox: {REGIONS[region].label} &middot; {aisMsgCount} msg</div>
                 </div>
                 <div style={{ display: "flex", gap: 4 }}>
-                  <div onClick={() => setAisDebug(d => !d)} style={{ color: "#00aaff", fontSize: 10, cursor: "pointer", border: "1px solid #00aaff55", padding: "3px 8px", borderRadius: 3 }}>{aisDebug ? "HIDE" : "DEBUG"}</div>
                   <div onClick={clearAisKey} style={{ color: "#ff6644", fontSize: 10, cursor: "pointer", border: "1px solid #ff664455", padding: "3px 8px", borderRadius: 3 }}>CLEAR</div>
                 </div>
               </div>
@@ -580,7 +600,10 @@ export default function WorldView() {
           </div>
           {aisDebug && aisStats && (
             <div style={{ background: "#00aaff11", border: "1px solid #00aaff44", borderRadius: 3, padding: "6px 8px", marginBottom: 8, fontSize: 10, color: "#aac", fontFamily: "monospace" }}>
-              <div style={{ color: "#00aaff", fontWeight: "bold", marginBottom: 4 }}>AIS DIAGNOSTIC</div>
+              <div style={{ color: "#00aaff", fontWeight: "bold", marginBottom: 4, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>AIS DIAGNOSTIC <span style={{ color: "#556", fontWeight: "normal", fontSize: 9 }}>Shift+D to toggle</span></span>
+                <span onClick={() => setAisDebug(false)} style={{ cursor: "pointer", color: "#556", fontSize: 11 }}>x</span>
+              </div>
               <div>msg total: {aisStats.msgCount} &middot; ships: {aisStats.ships} &middot; ws: {aisStats.readyState === 0 ? "CONNECTING" : aisStats.readyState === 1 ? "OPEN" : aisStats.readyState === 2 ? "CLOSING" : aisStats.readyState === 3 ? "CLOSED" : "n/a"}</div>
               <div>pos updates: {aisStats.diag?.pos || 0} &middot; no-coord: {aisStats.diag?.noCoord || 0} &middot; no-mmsi: {aisStats.diag?.noMmsi || 0} &middot; static-only: {aisStats.diag?.staticOnly || 0}</div>
               <div>parse-err: {aisStats.diag?.parseErr || 0} &middot; binary: {aisStats.diag?.binary || 0} &middot; non-obj: {aisStats.diag?.nonObject || 0} &middot; handler-err: {aisStats.diag?.handlerErr || 0} &middot; api-err: {aisStats.diag?.apiError || 0} &middot; payload: {aisStats.diag?.dataType || "?"}</div>
@@ -601,7 +624,32 @@ export default function WorldView() {
               )}
             </div>
           )}
-          {shipsRef.current.slice(0, 50).map((s, i) => (
+          {(() => {
+            const counts = shipsRef.current.reduce((a, s) => { a[s.type] = (a[s.type] || 0) + 1; return a; }, {});
+            const order = ["NAVAL", "TANKER", "CARGO", "PASSENGER", "OTHER"];
+            return (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 8 }}>
+                {order.map(t => {
+                  const n = counts[t] || 0;
+                  if (n === 0 && !shipTypeHide.has(t)) return null;
+                  const col = shipColor(t);
+                  const hidden = shipTypeHide.has(t);
+                  return (
+                    <div key={t} onClick={() => toggleShipType(t)}
+                      title={hidden ? "Click to show" : "Click to hide"}
+                      style={{ cursor: "pointer", fontSize: 9, fontFamily: "monospace", padding: "3px 7px", borderRadius: 3, userSelect: "none",
+                        background: hidden ? "transparent" : col + "22",
+                        border: `1px solid ${col}${hidden ? "33" : "88"}`,
+                        color: hidden ? col + "55" : col,
+                        textDecoration: hidden ? "line-through" : "none" }}>
+                      {t} {n}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
+          {shipsRef.current.filter(s => !shipTypeHide.has(s.type)).slice(0, 50).map((s, i) => (
             <div key={i} onClick={() => { rotRef.current = { lng: -s.lng, lat: s.lat }; setSelected({ type: "ship", data: s, x: window.innerWidth/2, y: 200 }); }}
               style={{ padding: "5px 8px", marginBottom: 3, background: shipColor(s.type) + "11", border: `1px solid ${shipColor(s.type)}44`, borderRadius: 3, cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
@@ -672,7 +720,7 @@ export default function WorldView() {
             <div>&bull; F cycle filter &middot; / search &middot; Esc close</div>
 
             <div style={{ color: "#778", fontSize: 9, marginTop: 12, borderTop: "1px solid #1a3a5c33", paddingTop: 6 }}>
-              Inspired by Bilawal Sidhu&apos;s "God&apos;s Eye" &middot; Built with React + D3 &middot; All data is public OSINT. Not for operational use.
+              Built with React + D3 &middot; All data is public OSINT. Not for operational use.
             </div>
           </div>
         </div>

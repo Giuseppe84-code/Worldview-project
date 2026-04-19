@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#04080f" />
+<title>Giuseppe84-code — Real-time geospatial dashboards, on demand</title>
+<meta name="description" content="Custom real-time geospatial dashboards for maritime security, OSINT, newsroom, and SOC teams. Client-only, PWA, no backend. Shipped in 2-4 weeks." />
+<meta property="og:title" content="Real-time geospatial dashboards, on demand" />
+<meta property="og:description" content="Custom OSINT & maritime dashboards. Client-only, PWA, $0 infra. Shipped in 2-4 weeks." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://giuseppe84-code.github.io/Worldview-project/landing.html" />
+<meta property="og:image" content="https://giuseppe84-code.github.io/Worldview-project/og.png" />
+<!-- X (formerly Twitter) still reads the standard twitter:* card tags -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="https://giuseppe84-code.github.io/Worldview-project/og.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+<style>
+  :root {
+    --bg: #04080f;
+    --bg-2: #0a1220;
+    --fg: #e6ecf4;
+    --fg-dim: #8a9bb3;
+    --accent: #6be1ff;
+    --accent-2: #ffae4a;
+    --border: #1a2740;
+    --ok: #5eff9e;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: var(--bg); color: var(--fg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  body { overflow-x: hidden; }
+  code, .mono { font-family: "SF Mono", Menlo, Consolas, "Liberation Mono", monospace; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+
+  /* Nav */
+  nav { border-bottom: 1px solid var(--border); padding: 16px 0; position: sticky; top: 0; background: rgba(4, 8, 15, 0.85); backdrop-filter: blur(8px); z-index: 10; }
+  nav .container { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+  nav .brand { font-family: "SF Mono", Menlo, monospace; font-weight: 700; color: var(--fg); font-size: 14px; letter-spacing: 0.5px; }
+  nav .brand::before { content: "> "; color: var(--accent); }
+  nav .links { display: flex; gap: 20px; font-size: 13px; }
+  nav .links a { color: var(--fg-dim); }
+  nav .links a:hover { color: var(--fg); text-decoration: none; }
+
+  /* Hero */
+  .hero { padding: 96px 0 80px; border-bottom: 1px solid var(--border); }
+  .hero .tag { font-family: "SF Mono", Menlo, monospace; font-size: 12px; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 24px; }
+  .hero h1 { font-size: clamp(32px, 5vw, 52px); line-height: 1.1; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 24px; }
+  .hero h1 .hl { color: var(--accent); }
+  .hero p.lead { font-size: clamp(16px, 2vw, 19px); color: var(--fg-dim); max-width: 620px; margin-bottom: 40px; }
+  .hero-img { margin-top: 56px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; box-shadow: 0 24px 80px rgba(107, 225, 255, 0.08); }
+  .hero-img img { display: block; width: 100%; height: auto; }
+  .cta-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn { display: inline-block; padding: 14px 22px; border-radius: 6px; font-weight: 600; font-size: 14px; letter-spacing: 0.3px; border: 1px solid transparent; transition: all 0.15s ease; }
+  .btn-primary { background: var(--accent); color: var(--bg); }
+  .btn-primary:hover { background: #8aebff; text-decoration: none; }
+  .btn-secondary { border-color: var(--border); color: var(--fg); }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+
+  /* Section */
+  section { padding: 72px 0; border-bottom: 1px solid var(--border); }
+  section h2 { font-size: 28px; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.01em; }
+  section h2::before { content: "// "; color: var(--accent); font-family: "SF Mono", Menlo, monospace; font-weight: 400; }
+  section .sub { color: var(--fg-dim); margin-bottom: 40px; max-width: 640px; }
+
+  /* Use case grid */
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+  .card { background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; padding: 24px; transition: border-color 0.15s ease; }
+  .card:hover { border-color: var(--accent); }
+  .card .icon { font-family: "SF Mono", Menlo, monospace; color: var(--accent); font-size: 12px; margin-bottom: 12px; letter-spacing: 1px; }
+  .card h3 { font-size: 17px; margin-bottom: 8px; }
+  .card p { color: var(--fg-dim); font-size: 14px; }
+
+  /* Case study metrics */
+  .case { background: var(--bg-2); border: 1px solid var(--border); border-radius: 10px; padding: 32px; }
+  .case .case-hdr { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
+  .case h3 { font-size: 22px; }
+  .case .case-link { font-size: 13px; font-family: "SF Mono", Menlo, monospace; }
+  .case p { color: var(--fg-dim); margin-bottom: 24px; }
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 20px; padding-top: 20px; border-top: 1px solid var(--border); }
+  .metric .val { font-family: "SF Mono", Menlo, monospace; color: var(--accent); font-size: 24px; font-weight: 700; }
+  .metric .lbl { color: var(--fg-dim); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+  /* Services table */
+  .svc { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  .svc-row { background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; padding: 24px; display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: start; }
+  .svc-row h3 { font-size: 17px; margin-bottom: 6px; }
+  .svc-row p { color: var(--fg-dim); font-size: 14px; }
+  .svc-row .price { font-family: "SF Mono", Menlo, monospace; color: var(--accent); font-size: 14px; font-weight: 700; white-space: nowrap; }
+  @media (max-width: 520px) {
+    .svc-row { grid-template-columns: 1fr; }
+  }
+
+  /* How I work */
+  .work-list { list-style: none; display: grid; gap: 14px; }
+  .work-list li { padding-left: 28px; position: relative; color: var(--fg-dim); }
+  .work-list li::before { content: "▸"; position: absolute; left: 0; color: var(--accent); }
+  .work-list li strong { color: var(--fg); font-weight: 600; }
+
+  .stack { font-family: "SF Mono", Menlo, monospace; font-size: 13px; color: var(--fg-dim); background: var(--bg-2); border: 1px solid var(--border); padding: 16px 20px; border-radius: 6px; margin-top: 24px; }
+
+  /* Contact */
+  .contact-box { text-align: center; padding: 48px 24px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 10px; }
+  .contact-box h2 { margin-bottom: 16px; }
+  .contact-box h2::before { content: none; }
+  .contact-box p { color: var(--fg-dim); margin-bottom: 32px; max-width: 520px; margin-left: auto; margin-right: auto; }
+  .contact-links { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+  footer { padding: 32px 0 48px; color: var(--fg-dim); font-size: 13px; text-align: center; }
+  footer .mono { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="container">
+    <div class="brand">giuseppe84-code</div>
+    <div class="links">
+      <a href="#services">Services</a>
+      <a href="#case">Case Study</a>
+      <a href="./">Live Demo</a>
+      <a href="#contact">Contact</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="container">
+    <div class="tag">Freelance · Remote · Available for new projects</div>
+    <h1>Real-time geospatial dashboards,<br/><span class="hl">shipped in weeks.</span></h1>
+    <p class="lead">
+      I build custom OSINT &amp; situational-awareness command centers for maritime security, newsroom research, fleet operations, and SOC teams. Client-only, installable as a PWA, no backend to pay for.
+    </p>
+    <div class="cta-row">
+      <a href="#contact" class="btn btn-primary">Get in touch</a>
+      <a href="./" class="btn btn-secondary">See live demo →</a>
+    </div>
+    <div class="hero-img">
+      <a href="./"><img src="hero.png" alt="WorldView orthographic globe with live vessels, flights, and GPS-jamming zones" /></a>
+    </div>
+  </div>
+</header>
+
+<section id="services">
+  <div class="container">
+    <h2>What I build</h2>
+    <p class="sub">Every project is a variation on the same core: a fast interactive map + live feeds + filters your team actually uses. Four shapes I've scoped so far:</p>
+    <div class="grid">
+      <div class="card">
+        <div class="icon">01 · MARITIME</div>
+        <h3>Vessel tracking dashboards</h3>
+        <p>AIS stream aggregation, flag filters, port arrival alerts, area-of-interest monitoring. For shipping firms, port authorities, maritime security consultancies.</p>
+      </div>
+      <div class="card">
+        <div class="icon">02 · NEWSROOM</div>
+        <h3>Conflict / incident monitoring</h3>
+        <p>Correlate flights, ships, seismic, and custom alert feeds on one globe. Replay mode for reconstructing incidents. For investigative teams and OSINT desks.</p>
+      </div>
+      <div class="card">
+        <div class="icon">03 · FLEET</div>
+        <h3>Private fleet / asset trackers</h3>
+        <p>Ingest your own telemetry (REST/WebSocket), show it alongside public reference data. Branded white-label build, deploys to your domain.</p>
+      </div>
+      <div class="card">
+        <div class="icon">04 · SOC</div>
+        <h3>Internal operations dashboards</h3>
+        <p>Real-time incident map for 24/7 ops rooms. Audio alerts, keyboard shortcuts, mobile-ready for duty officers. Runs offline after first load.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="case">
+  <div class="container">
+    <h2>Proof of work</h2>
+    <p class="sub">WorldView is the open reference build — the codebase I fork for every client engagement.</p>
+    <div class="case">
+      <div class="case-hdr">
+        <h3>WorldView — OSINT Command Center</h3>
+        <a class="case-link" href="./" target="_blank">live demo ↗</a>
+      </div>
+      <p>Aggregates ADS-B flights, AIS vessels, satellite TLEs, USGS seismic, and GPS-jamming zones on a single orthographic globe. Runs entirely in the browser. Published to GitHub Pages via CI/CD on every push.</p>
+      <div class="metrics">
+        <div class="metric">
+          <div class="val">~84 kB</div>
+          <div class="lbl">JS gzipped</div>
+        </div>
+        <div class="metric">
+          <div class="val">&lt; 2 s</div>
+          <div class="lbl">Cold load on 4G</div>
+        </div>
+        <div class="metric">
+          <div class="val">500+</div>
+          <div class="lbl">Markers @ 60 fps</div>
+        </div>
+        <div class="metric">
+          <div class="val">$0</div>
+          <div class="lbl">Monthly infra</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <h2>How I price</h2>
+    <p class="sub">Fixed-price engagements, no hourly games. You know the number before I start.</p>
+    <div class="svc">
+      <div class="svc-row">
+        <div>
+          <h3>Discovery call</h3>
+          <p>30 minutes. We talk through your use case, your feeds, your users. I tell you honestly whether I can help, and scope a proposal if I can.</p>
+        </div>
+        <div class="price">Free</div>
+      </div>
+      <div class="svc-row">
+        <div>
+          <h3>White-label rebrand</h3>
+          <p>WorldView with your feeds, your branding, your domain. 1-2 feed integrations, palette, logo, deploy. Source code delivered.</p>
+        </div>
+        <div class="price">€2.5k – €6k</div>
+      </div>
+      <div class="svc-row">
+        <div>
+          <h3>Custom MVP</h3>
+          <p>New dashboard built around your specific feeds and workflow. 3-5 feed integrations, custom filters, export, deploy. 2-4 week turnaround.</p>
+        </div>
+        <div class="price">€4k – €12k</div>
+      </div>
+      <div class="svc-row">
+        <div>
+          <h3>Maintenance retainer</h3>
+          <p>Ongoing bugfixes, small feature additions, monitoring. Reserve 8-20 hours per month at a predictable rate.</p>
+        </div>
+        <div class="price">€300 – €1.5k / mo</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <h2>How I work</h2>
+    <ul class="work-list">
+      <li><strong>No vendor lock-in.</strong> Your code, your repo, your domain. If we stop working together, nothing stops working.</li>
+      <li><strong>No backend unless it's needed.</strong> Static deploys on GitHub Pages / Vercel / Netlify for ~$0. Backend only when the problem actually requires it.</li>
+      <li><strong>Weekly demo calls.</strong> You see the build evolve. No three-week black box then a surprise reveal.</li>
+      <li><strong>Mobile-first.</strong> Your analysts open it on a phone during an incident. It has to work there.</li>
+      <li><strong>Ship fast, then refine.</strong> First deployable build in week one. Feedback loop tight enough to catch scope drift early.</li>
+    </ul>
+    <div class="stack">
+      Stack: React 18 · Vite · D3.js · Canvas 2D · WebSocket · Service Worker · GitHub Actions
+    </div>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="container">
+    <div class="contact-box">
+      <h2>Let's talk</h2>
+      <p>Describe what you want to monitor and I'll tell you in 30 minutes whether this is the right tool. Free, no pitch deck.</p>
+      <div class="contact-links">
+        <a class="btn btn-primary" href="https://github.com/Giuseppe84-code" target="_blank">GitHub profile</a>
+        <a class="btn btn-secondary" href="https://github.com/Giuseppe84-code/Worldview-project/issues/new" target="_blank">Open an issue</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <span class="mono">giuseppe84-code</span> · built with the same stack I sell · <a href="./">live demo</a> · <a href="https://github.com/Giuseppe84-code/Worldview-project" target="_blank">source</a>
+  </div>
+</footer>
+
+</body>
+</html>
