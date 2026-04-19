@@ -76,11 +76,12 @@ Region selection, visual filter, ship-type filter, AIS key — all persist acros
 
 | Metric | Value |
 |---|---|
-| JS bundle (gzipped) | ~84 kB |
+| JS bundle (gzipped, first load) | ~84 kB (3 chunks: React 45 kB + D3 21 kB + app 17 kB) |
+| JS re-download after app update | ~17 kB (vendor chunks cached) |
 | Cold load on 4G | < 2 s |
 | Live marker budget at 60 fps | 500+ on mid-tier Android |
 | Concurrent feeds | 5 (ADS-B poll, AIS stream, satellites poll, quakes poll, TopoJSON) |
-| Static asset count | 6 (HTML + JS + CSS + 3 icons) |
+| Static asset count | 9 (HTML + 4 JS chunks + CSS + 3 icons) |
 | Backend | None |
 | Monthly infra cost | $0 (GitHub Pages) |
 
