@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://giuseppe84-code.github.io/Worldview-project/sitemap.xml
