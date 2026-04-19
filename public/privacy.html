@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#04080f" />
+<meta name="robots" content="index, follow" />
+<title>Privacy Policy — WorldView</title>
+<meta name="description" content="Privacy policy for WorldView. GDPR-compliant, no tracking, no cookies, no data collection beyond your browser." />
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+<style>
+  :root {
+    --bg: #04080f;
+    --bg-2: #0a1220;
+    --fg: #e6ecf4;
+    --fg-dim: #8a9bb3;
+    --accent: #6be1ff;
+    --border: #1a2740;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: var(--bg); color: var(--fg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.7; -webkit-font-smoothing: antialiased; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .container { max-width: 760px; margin: 0 auto; padding: 0 24px; }
+
+  nav { border-bottom: 1px solid var(--border); padding: 16px 0; position: sticky; top: 0; background: rgba(4, 8, 15, 0.85); backdrop-filter: blur(8px); z-index: 10; }
+  nav .container { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; max-width: 960px; }
+  nav .brand { font-family: "SF Mono", Menlo, monospace; font-weight: 700; color: var(--fg); font-size: 14px; letter-spacing: 0.5px; }
+  nav .brand::before { content: "> "; color: var(--accent); }
+  nav .links { display: flex; gap: 20px; font-size: 13px; }
+  nav .links a { color: var(--fg-dim); }
+  nav .links a:hover { color: var(--fg); text-decoration: none; }
+
+  header.doc-header { padding: 72px 0 32px; border-bottom: 1px solid var(--border); }
+  header.doc-header .tag { font-family: "SF Mono", Menlo, monospace; font-size: 12px; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px; }
+  header.doc-header h1 { font-size: clamp(28px, 4vw, 40px); line-height: 1.2; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 16px; }
+  header.doc-header .meta { color: var(--fg-dim); font-size: 14px; font-family: "SF Mono", Menlo, monospace; }
+
+  main { padding: 48px 0 80px; }
+  main h2 { font-size: 22px; font-weight: 700; margin: 40px 0 16px; letter-spacing: -0.01em; }
+  main h2:first-child { margin-top: 0; }
+  main h2::before { content: "// "; color: var(--accent); font-family: "SF Mono", Menlo, monospace; font-weight: 400; }
+  main h3 { font-size: 16px; font-weight: 600; margin: 24px 0 8px; color: var(--fg); }
+  main p { margin-bottom: 16px; color: var(--fg); }
+  main p.dim { color: var(--fg-dim); }
+  main ul, main ol { margin: 0 0 16px 24px; color: var(--fg); }
+  main li { margin-bottom: 6px; }
+  main code { font-family: "SF Mono", Menlo, monospace; background: var(--bg-2); border: 1px solid var(--border); padding: 2px 6px; border-radius: 4px; font-size: 13px; color: var(--accent); }
+  main strong { color: var(--fg); font-weight: 700; }
+  main .callout { background: var(--bg-2); border: 1px solid var(--border); border-left: 3px solid var(--accent); padding: 16px 20px; margin: 20px 0; border-radius: 4px; }
+  main .callout p { margin-bottom: 0; color: var(--fg-dim); font-size: 14px; }
+
+  footer { padding: 32px 0 48px; color: var(--fg-dim); font-size: 13px; text-align: center; border-top: 1px solid var(--border); }
+  footer .mono { color: var(--accent); font-family: "SF Mono", Menlo, monospace; }
+  footer .links { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+  footer .links a { color: var(--fg-dim); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="container">
+    <div class="brand">giuseppe84-code</div>
+    <div class="links">
+      <a href="./">Live demo</a>
+      <a href="landing.html">Services</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+    </div>
+  </div>
+</nav>
+
+<header class="doc-header">
+  <div class="container">
+    <div class="tag">Legal</div>
+    <h1>Privacy Policy</h1>
+    <div class="meta">Effective: 19 April 2026 · Last updated: 19 April 2026</div>
+  </div>
+</header>
+
+<main>
+  <div class="container">
+
+    <div class="callout">
+      <p><strong>TL;DR —</strong> WorldView runs entirely in your browser. We don't use cookies, don't run analytics, don't collect emails, don't track you. Your API key and preferences are stored locally on your device only. The only logs that exist are GitHub's standard hosting logs.</p>
+    </div>
+
+    <h2>1. Who we are (Data Controller)</h2>
+    <p>
+      This Privacy Policy applies to the website <strong>WorldView</strong> (the "Site"), hosted at
+      <a href="https://giuseppe84-code.github.io/Worldview-project/">https://giuseppe84-code.github.io/Worldview-project/</a>
+      and its subpages.
+    </p>
+    <p>
+      <strong>Data Controller:</strong> Giuseppe84-code, operating as an independent developer based in Italy.
+      Contact: via GitHub profile <a href="https://github.com/Giuseppe84-code">https://github.com/Giuseppe84-code</a>
+      or by opening an issue on the project repository.
+    </p>
+
+    <h2>2. What we do not collect</h2>
+    <p>WorldView has no backend of its own. Specifically, we do not:</p>
+    <ul>
+      <li>Use cookies of any kind</li>
+      <li>Run analytics (no Google Analytics, Plausible, Matomo, Umami, or similar)</li>
+      <li>Operate fingerprinting or device-identification</li>
+      <li>Collect email addresses, names, phone numbers, or any contact data (there are no forms on the Site)</li>
+      <li>Use advertising networks or remarketing pixels</li>
+      <li>Sell, rent, share, or transfer any personal data</li>
+    </ul>
+
+    <h2>3. What is stored locally in your browser</h2>
+    <p>
+      WorldView uses the browser's <code>localStorage</code> to save the following on <strong>your device only</strong>:
+    </p>
+    <ul>
+      <li><code>wv_aisstream_key</code> — the personal aisstream.io API key you optionally enter to enable vessel tracking</li>
+      <li>Region selection, visual filter, vessel-type filter, and other UI preferences</li>
+    </ul>
+    <p>This data:</p>
+    <ul>
+      <li>Never leaves your device</li>
+      <li>Is accessible only to this website, within your browser's origin-isolated storage</li>
+      <li>Can be deleted at any time via your browser's "Clear site data" option</li>
+      <li>Is not transmitted to any server operated by this project</li>
+    </ul>
+    <p class="dim">Under GDPR, strictly necessary local storage used exclusively to deliver a feature you explicitly requested (entering an API key, selecting a region) does not require prior consent.</p>
+
+    <h2>4. Hosting provider (GitHub Pages)</h2>
+    <p>
+      The Site is hosted on <strong>GitHub Pages</strong>, a service operated by GitHub, Inc. (a subsidiary of Microsoft Corporation).
+      When you visit any page, GitHub may automatically log:
+    </p>
+    <ul>
+      <li>Your IP address</li>
+      <li>Your browser user-agent string</li>
+      <li>Request timestamps and response codes</li>
+    </ul>
+    <p>
+      These logs are maintained by GitHub for security, abuse prevention, and rate-limiting purposes under GitHub's own privacy terms. We do not operate, access, or control them.
+      Refer to the
+      <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">GitHub General Privacy Statement</a>
+      for details.
+    </p>
+
+    <h2>5. Third-party data feeds</h2>
+    <p>
+      When you use the live data features, your browser connects <strong>directly</strong> to the following third-party APIs.
+      We do not proxy or relay these requests — they leave your device straight to each provider:
+    </p>
+    <ul>
+      <li><a href="https://opensky-network.org/" target="_blank" rel="noopener">OpenSky Network</a> — live ADS-B flight data</li>
+      <li><a href="https://aisstream.io" target="_blank" rel="noopener">aisstream.io</a> — live AIS vessel data (requires your own API key)</li>
+      <li><a href="https://celestrak.org/" target="_blank" rel="noopener">CelesTrak</a> — satellite orbital elements</li>
+      <li><a href="https://earthquake.usgs.gov/" target="_blank" rel="noopener">USGS Earthquake Hazards</a> — seismic events</li>
+      <li><a href="https://github.com/topojson/world-atlas" target="_blank" rel="noopener">world-atlas</a> — country borders (TopoJSON)</li>
+    </ul>
+    <p>
+      Each of these providers may log your IP address and request metadata under their own privacy policies.
+      Please refer to their respective documentation if you wish to review how they process your data.
+    </p>
+
+    <h2>6. Legal basis for processing (GDPR Art. 6)</h2>
+    <p>Where the General Data Protection Regulation applies:</p>
+    <ul>
+      <li>Delivery of the static website to your browser is based on our <strong>legitimate interest</strong> in operating a public technical demonstration (Art. 6(1)(f))</li>
+      <li>Use of <code>localStorage</code> is <strong>strictly necessary</strong> to provide features you explicitly requested (Art. 6(1)(b))</li>
+      <li>No automated decision-making or profiling takes place (Art. 22)</li>
+    </ul>
+
+    <h2>7. Data retention</h2>
+    <p>
+      We retain <strong>no personal data</strong> on any server we operate, because we operate none.
+      Data in your browser's <code>localStorage</code> persists until you remove it.
+      GitHub's hosting logs are retained according to their own policy.
+    </p>
+
+    <h2>8. Your rights under GDPR</h2>
+    <p>If you are in the European Economic Area, the United Kingdom, or another jurisdiction granting equivalent rights, you may:</p>
+    <ul>
+      <li><strong>Access</strong> any data we hold about you (answer: none beyond what already sits on your own device)</li>
+      <li><strong>Rectify</strong> inaccurate data</li>
+      <li><strong>Erase</strong> your data ("right to be forgotten") — exercisable directly by clearing site data in your browser</li>
+      <li><strong>Restrict or object</strong> to processing</li>
+      <li><strong>Port</strong> your data to another service</li>
+      <li><strong>Lodge a complaint</strong> with your national data protection authority. In Italy: <a href="https://www.garanteprivacy.it/" target="_blank" rel="noopener">Garante per la protezione dei dati personali</a></li>
+    </ul>
+    <p>
+      To exercise any right, or if you have any question about how your data is handled, please contact us via GitHub
+      (<a href="https://github.com/Giuseppe84-code">profile</a> or
+      <a href="https://github.com/Giuseppe84-code/Worldview-project/issues">issue tracker</a>).
+      We will respond within a reasonable timeframe, typically within 30 days.
+    </p>
+
+    <h2>9. International transfers</h2>
+    <p>
+      Because the Site is hosted by GitHub (US-based), some technical log data may be processed outside the European Economic Area.
+      GitHub publishes its own safeguards and standard contractual clauses for such transfers — see their privacy statement linked above.
+    </p>
+
+    <h2>10. Children</h2>
+    <p>
+      The Site is not directed to children under 16. No personal data is knowingly collected from minors.
+      If you believe a minor has provided data, please contact us and we will investigate.
+    </p>
+
+    <h2>11. Changes to this policy</h2>
+    <p>
+      We may update this Privacy Policy as the Site evolves. The "Last updated" date at the top of this page reflects the current version.
+      Material changes will be noted in the
+      <a href="https://github.com/Giuseppe84-code/Worldview-project" target="_blank" rel="noopener">project repository</a>.
+    </p>
+
+    <h2>12. Contact</h2>
+    <p>
+      Questions about this Privacy Policy? Open a
+      <a href="https://github.com/Giuseppe84-code/Worldview-project/issues/new" target="_blank" rel="noopener">GitHub issue</a>
+      or reach us via <a href="https://github.com/Giuseppe84-code">github.com/Giuseppe84-code</a>.
+    </p>
+
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    <span class="mono">giuseppe84-code</span> · client-only · no tracking · no cookies
+    <div class="links">
+      <a href="./">Live demo</a>
+      <a href="landing.html">Services</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+      <a href="https://github.com/Giuseppe84-code/Worldview-project" target="_blank" rel="noopener">Source</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
