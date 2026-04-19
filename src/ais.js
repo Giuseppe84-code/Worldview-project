@@ -214,15 +214,15 @@ export function connectAIS({ key, bboxes, onUpdate, onStatus }) {
     ws.onerror = () => { onStatus?.({ state: "error" }); };
     ws.onclose = (ev) => {
       if (!closed) {
-        onStatus?.({ state: "disconnected", msg: `code ${ev.code}` });
-        scheduleReconnect();
+        scheduleReconnect(ev.code);
       }
     };
   };
 
-  const scheduleReconnect = () => {
+  const scheduleReconnect = (code) => {
     if (closed) return;
     const delay = Math.min(30000, 1500 * Math.pow(2, retries++));
+    onStatus?.({ state: "reconnecting", msg: `in ${Math.round(delay / 1000)}s` });
     reconnectTimer = setTimeout(connect, delay);
   };
 

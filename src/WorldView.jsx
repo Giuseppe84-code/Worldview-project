@@ -122,7 +122,7 @@ export default function WorldView() {
       bboxes: regionToBBoxes(REGIONS[region]),
       onUpdate: (ships) => { shipsRef.current = ships; setShipCount(ships.length); },
       onStatus: ({ state, msg }) => {
-        setAisStatus(state === "connected" ? "LIVE AIS" : state === "connecting" ? "CONNECTING" : state === "error" ? `ERR${msg ? ":" + msg.slice(0, 15) : ""}` : state === "disconnected" ? `DROP ${msg || ""}`.trim() : state.toUpperCase());
+        setAisStatus(state === "connected" ? "LIVE AIS" : state === "connecting" ? "CONNECTING" : state === "reconnecting" ? `RECONNECTING${msg ? " " + msg : "..."}` : state === "error" ? `ERR${msg ? ":" + msg.slice(0, 15) : ""}` : state === "disconnected" ? "DISCONNECTED" : state.toUpperCase());
       },
     });
     aisHandleRef.current = handle;
@@ -572,14 +572,14 @@ export default function WorldView() {
       {panel === "ships" && (
         <div className="slide-up" style={{ position: "fixed", bottom: 82, left: 8, right: 8, zIndex: 9997, background: F.bg + "ee", border: "1px solid #44ddaa", borderRadius: 6, padding: "10px 12px", maxHeight: "45vh", overflowY: "auto", backdropFilter: "blur(8px)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-            <span style={{ color: "#44ddaa", fontSize: 13, fontWeight: "bold", letterSpacing: 2 }}>VESSELS ({shipCount}) <span style={{ color: aisStatus === "LIVE AIS" ? "#00ffaa" : "#ffaa00", fontSize: 10, marginLeft: 8 }}>[{aisStatus}]</span></span>
+            <span style={{ color: "#44ddaa", fontSize: 13, fontWeight: "bold", letterSpacing: 2 }}>VESSELS ({shipCount}) <span style={{ color: aisStatus === "LIVE AIS" ? "#00ffaa" : aisStatus.startsWith("ERR") || aisStatus === "DISCONNECTED" ? "#ff6644" : "#ffaa00", fontSize: 10, marginLeft: 8 }}>[{aisStatus}]</span></span>
             <div onClick={() => setPanel(null)} style={{ color: "#556", fontSize: 16, cursor: "pointer" }}>x</div>
           </div>
           <div style={{ background: "#44ddaa11", border: "1px solid #44ddaa33", borderRadius: 3, padding: "6px 8px", marginBottom: 8 }}>
             {aisKey ? (
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
                 <div>
-                  <div style={{ color: aisStatus === "LIVE AIS" ? "#00ffaa" : aisStatus.startsWith("ERR") || aisStatus.startsWith("DROP") ? "#ff6644" : "#ffaa00", fontSize: 11, fontWeight: "bold" }}>{aisStatus}</div>
+                  <div style={{ color: aisStatus === "LIVE AIS" ? "#00ffaa" : aisStatus.startsWith("ERR") || aisStatus === "DISCONNECTED" ? "#ff6644" : "#ffaa00", fontSize: 11, fontWeight: "bold" }}>{aisStatus}</div>
                   <div style={{ color: "#1a3a5c", fontSize: 9 }}>aisstream.io &middot; bbox: {REGIONS[region].label} &middot; {aisMsgCount} msg</div>
                 </div>
                 <div style={{ display: "flex", gap: 4 }}>
