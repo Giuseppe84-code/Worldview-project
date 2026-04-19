@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#04080f" />
+<meta name="robots" content="index, follow" />
+<title>Terms of Service & OSINT Disclaimer — WorldView</title>
+<meta name="description" content="Terms of use for WorldView — OSINT data disclaimer, limitation of liability, acceptable use, governing law." />
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+<style>
+  :root {
+    --bg: #04080f;
+    --bg-2: #0a1220;
+    --fg: #e6ecf4;
+    --fg-dim: #8a9bb3;
+    --accent: #6be1ff;
+    --warn: #ffae4a;
+    --border: #1a2740;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: var(--bg); color: var(--fg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.7; -webkit-font-smoothing: antialiased; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .container { max-width: 760px; margin: 0 auto; padding: 0 24px; }
+
+  nav { border-bottom: 1px solid var(--border); padding: 16px 0; position: sticky; top: 0; background: rgba(4, 8, 15, 0.85); backdrop-filter: blur(8px); z-index: 10; }
+  nav .container { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; max-width: 960px; }
+  nav .brand { font-family: "SF Mono", Menlo, monospace; font-weight: 700; color: var(--fg); font-size: 14px; letter-spacing: 0.5px; }
+  nav .brand::before { content: "> "; color: var(--accent); }
+  nav .links { display: flex; gap: 20px; font-size: 13px; }
+  nav .links a { color: var(--fg-dim); }
+  nav .links a:hover { color: var(--fg); text-decoration: none; }
+
+  header.doc-header { padding: 72px 0 32px; border-bottom: 1px solid var(--border); }
+  header.doc-header .tag { font-family: "SF Mono", Menlo, monospace; font-size: 12px; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px; }
+  header.doc-header h1 { font-size: clamp(28px, 4vw, 40px); line-height: 1.2; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 16px; }
+  header.doc-header .meta { color: var(--fg-dim); font-size: 14px; font-family: "SF Mono", Menlo, monospace; }
+
+  main { padding: 48px 0 80px; }
+  main h2 { font-size: 22px; font-weight: 700; margin: 40px 0 16px; letter-spacing: -0.01em; }
+  main h2:first-child { margin-top: 0; }
+  main h2::before { content: "// "; color: var(--accent); font-family: "SF Mono", Menlo, monospace; font-weight: 400; }
+  main p { margin-bottom: 16px; color: var(--fg); }
+  main p.dim { color: var(--fg-dim); }
+  main ul, main ol { margin: 0 0 16px 24px; color: var(--fg); }
+  main li { margin-bottom: 6px; }
+  main code { font-family: "SF Mono", Menlo, monospace; background: var(--bg-2); border: 1px solid var(--border); padding: 2px 6px; border-radius: 4px; font-size: 13px; color: var(--accent); }
+  main strong { color: var(--fg); font-weight: 700; }
+  main .callout { background: var(--bg-2); border: 1px solid var(--border); border-left: 3px solid var(--accent); padding: 16px 20px; margin: 20px 0; border-radius: 4px; }
+  main .callout p { margin-bottom: 0; color: var(--fg-dim); font-size: 14px; }
+  main .callout.warn { border-left-color: var(--warn); }
+  main .callout.warn p { color: var(--fg); }
+  main .callout.warn strong { color: var(--warn); }
+
+  footer { padding: 32px 0 48px; color: var(--fg-dim); font-size: 13px; text-align: center; border-top: 1px solid var(--border); }
+  footer .mono { color: var(--accent); font-family: "SF Mono", Menlo, monospace; }
+  footer .links { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+  footer .links a { color: var(--fg-dim); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="container">
+    <div class="brand">giuseppe84-code</div>
+    <div class="links">
+      <a href="./">Live demo</a>
+      <a href="landing.html">Services</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+    </div>
+  </div>
+</nav>
+
+<header class="doc-header">
+  <div class="container">
+    <div class="tag">Legal</div>
+    <h1>Terms of Service &amp; OSINT Disclaimer</h1>
+    <div class="meta">Effective: 19 April 2026 · Last updated: 19 April 2026</div>
+  </div>
+</header>
+
+<main>
+  <div class="container">
+
+    <div class="callout warn">
+      <p><strong>READ FIRST —</strong> WorldView is a free public technical demonstration. All data is sourced from third-party OSINT feeds and is provided AS-IS with no warranty. It is <strong>not certified</strong> for aviation, maritime, safety-critical, law-enforcement, or operational use. Do not rely on it for decisions that affect life, property, or legal matters.</p>
+    </div>
+
+    <h2>1. Acceptance</h2>
+    <p>
+      By accessing or using WorldView (the "Site") at
+      <a href="https://giuseppe84-code.github.io/Worldview-project/">https://giuseppe84-code.github.io/Worldview-project/</a>,
+      you agree to these Terms of Service. If you do not agree, do not use the Site.
+    </p>
+
+    <h2>2. Nature of the service</h2>
+    <p>
+      WorldView is a free, open-source, client-only situational-awareness dashboard built as a portfolio and technical-demonstration project.
+      It aggregates public OSINT feeds on an interactive globe.
+    </p>
+    <ul>
+      <li>It has no backend, no account system, no paid tier</li>
+      <li>The source code is released under the MIT License</li>
+      <li>It is provided on a best-effort basis with no uptime guarantee</li>
+    </ul>
+
+    <h2>3. OSINT data disclaimer</h2>
+    <p>
+      All data displayed by WorldView is retrieved from third-party public feeds listed in our
+      <a href="privacy.html">Privacy Policy</a> (section 5). This data is presented <strong>AS-IS</strong>, with:
+    </p>
+    <ul>
+      <li>No warranty of accuracy</li>
+      <li>No warranty of completeness</li>
+      <li>No warranty of timeliness or freshness</li>
+      <li>No warranty of fitness for any particular purpose</li>
+    </ul>
+    <p><strong>WorldView is NOT CERTIFIED and MUST NOT BE USED for:</strong></p>
+    <ul>
+      <li>Aviation or maritime navigation</li>
+      <li>Safety-of-life decision-making</li>
+      <li>Search and rescue operations</li>
+      <li>Law enforcement, military, or intelligence operations</li>
+      <li>Financial trading or investment decisions</li>
+      <li>Any situation in which incorrect, missing, or delayed data could cause physical, legal, or financial harm</li>
+    </ul>
+    <p>
+      Do not rely on WorldView for any decision that affects life, property, safety, or legal matters.
+      If you need operationally certified data, use a certified commercial provider.
+    </p>
+
+    <h2>4. Acceptable use</h2>
+    <p>You agree not to:</p>
+    <ul>
+      <li>Violate the terms of service of any upstream data provider accessed through WorldView</li>
+      <li>Scrape, redistribute, or mirror third-party feed data beyond personal, reasonable, human-paced use</li>
+      <li>Circumvent rate limits or security measures of upstream providers</li>
+      <li>Use the Site to stalk, harass, threaten, or cause harm to any individual</li>
+      <li>Use the Site for unlawful surveillance of private persons</li>
+      <li>Attempt to compromise the Site, its service worker, or the devices of other users</li>
+    </ul>
+
+    <h2>5. Your own API keys</h2>
+    <p>
+      Some features (e.g., live vessel tracking via aisstream.io) require an API key that you provide yourself.
+      By entering a key, you confirm that:
+    </p>
+    <ul>
+      <li>You obtained the key lawfully from the relevant provider</li>
+      <li>You are responsible for complying with that provider's terms of service</li>
+      <li>You understand the key is stored in your browser's <code>localStorage</code> only, never transmitted to us</li>
+    </ul>
+
+    <h2>6. Third-party services</h2>
+    <p>
+      WorldView connects your browser directly to third-party APIs. We have no control over these services, their availability, their accuracy, or their terms.
+      Your use of their data is governed by their respective terms:
+    </p>
+    <ul>
+      <li><a href="https://opensky-network.org/about/terms-of-use" target="_blank" rel="noopener">OpenSky Network</a></li>
+      <li><a href="https://aisstream.io" target="_blank" rel="noopener">aisstream.io</a></li>
+      <li><a href="https://celestrak.org/" target="_blank" rel="noopener">CelesTrak</a></li>
+      <li><a href="https://www.usgs.gov/" target="_blank" rel="noopener">USGS</a></li>
+    </ul>
+
+    <h2>7. Intellectual property</h2>
+    <p>
+      The WorldView source code is released under the
+      <a href="https://github.com/Giuseppe84-code/Worldview-project/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>.
+      You may fork, modify, and redistribute it under its terms.
+      The data displayed on the Site remains the property of the respective upstream providers and is subject to their terms.
+      The name "WorldView" as used in this project, together with the domain and branding, is not transferred by the MIT License.
+    </p>
+
+    <h2>8. No professional advice</h2>
+    <p>
+      Nothing presented on the Site constitutes legal, financial, security, military, maritime, aviation, medical, or safety advice.
+      Consult a qualified professional for any decision of that nature.
+    </p>
+
+    <h2>9. Limitation of liability</h2>
+    <p>
+      To the maximum extent permitted by applicable law, in no event shall the operator of WorldView be liable for:
+    </p>
+    <ul>
+      <li>Any direct, indirect, incidental, special, consequential, exemplary, or punitive damages</li>
+      <li>Loss of data, profits, revenue, business, or opportunity</li>
+      <li>Damages arising from inaccurate, missing, or delayed data</li>
+      <li>Service unavailability, interruption, or termination</li>
+      <li>Acts or omissions of third-party data providers</li>
+    </ul>
+    <p>
+      Your sole and exclusive remedy for any dissatisfaction with the Site is to stop using it.
+      Nothing in these Terms excludes liability that cannot lawfully be excluded under Italian or EU consumer-protection law.
+    </p>
+
+    <h2>10. Indemnification</h2>
+    <p>
+      You agree to hold the operator of WorldView harmless from any claim, loss, or expense arising from your use of the Site
+      in violation of these Terms or any applicable law.
+    </p>
+
+    <h2>11. Consulting engagements</h2>
+    <p>
+      The services described on our <a href="landing.html">landing page</a> (white-label builds, custom MVPs, maintenance retainers)
+      are offered under a <strong>separate written consulting agreement</strong> negotiated per engagement.
+      These Terms govern only your use of this public website and do not form a consulting contract.
+    </p>
+
+    <h2>12. Changes to these Terms</h2>
+    <p>
+      We may update these Terms as the Site evolves. The "Last updated" date at the top reflects the current version.
+      Material changes will be noted in the <a href="https://github.com/Giuseppe84-code/Worldview-project" target="_blank" rel="noopener">project repository</a>.
+      Continued use after a change constitutes acceptance of the updated Terms.
+    </p>
+
+    <h2>13. Governing law and jurisdiction</h2>
+    <p>
+      These Terms are governed by the laws of the <strong>Republic of Italy</strong>, without regard to conflict-of-laws principles.
+      Any dispute arising from these Terms or from your use of the Site shall be subject to the exclusive jurisdiction of the competent Italian courts,
+      except where mandatory consumer-protection rules of your country of residence grant you a more favourable jurisdiction.
+    </p>
+
+    <h2>14. Severability</h2>
+    <p>
+      If any provision of these Terms is held invalid or unenforceable, the remaining provisions remain in full effect.
+    </p>
+
+    <h2>15. Contact</h2>
+    <p>
+      Questions about these Terms? Open a
+      <a href="https://github.com/Giuseppe84-code/Worldview-project/issues/new" target="_blank" rel="noopener">GitHub issue</a>
+      or reach us via <a href="https://github.com/Giuseppe84-code">github.com/Giuseppe84-code</a>.
+    </p>
+
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    <span class="mono">giuseppe84-code</span> · open source · MIT · as-is
+    <div class="links">
+      <a href="./">Live demo</a>
+      <a href="landing.html">Services</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+      <a href="https://github.com/Giuseppe84-code/Worldview-project" target="_blank" rel="noopener">Source</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
